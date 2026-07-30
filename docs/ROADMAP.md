@@ -20,10 +20,10 @@
 - **Dev bootstrap update:** extend `dev-setup.ps1` to register the service via `sc.exe` and load the extension unpacked in Chrome/Edge.
 
 ## Milestone 2: DNS filtering
-- Local DNS module.
-- Blocklist ingestion.
-- Custom domain rules.
-- Basic decision logging.
+- [x] Local DNS module (`DnsFilter` async UDP listener on `127.0.0.1:53`).
+- [x] Blocklist ingestion (`domain_blocklist` SQLite table & in-memory `HashSet` lookups).
+- [x] Custom domain rules (`policies/custom-blacklist.txt`).
+- [x] Basic decision logging (`events` table logging for DNS blocks/allows).
 
 ## Milestone 3: Rule engine
 - Regex engine.
