@@ -166,9 +166,11 @@ The solution includes 12 test suites across `tests/`:
 - `RuleEngineTests.cs`: Multi-stage pipeline evaluation, domain blocklist priority, and threshold scoring with optional Stage 4 AI boosting.
 - `AiTextClassifierTests.cs`: N-gram TF-IDF & Bayesian probability text classification for safe, suggestive, and explicit content.
 - `NsfwImageClassifierTests.cs`: Verifies Option B 3-Tier Cascade Gate (Gate 1 icon bypass, Gate 2 YCbCr allow without neural net, and Gate 3 ONNX deep learning vision evaluation).
+- `InstallerServiceTests.cs`: Automated directory hierarchy creation, default policy file generation (`keywords-default.json` & `regex-default.json`), policy restoration, and SQLite database migration calls.
+- `UninstallerServiceTests.cs`: Commitment lock gating enforcement (verifying complete rejection of uninstallation when 25-day lock is active) and staged clean reverse removal when unlocked.
 - `ConfigValidatorTests.cs`: Service configuration rules.
 - `DependencyInjectionTests.cs`: Container resolution for `AddAegisInfrastructure()` registered services.
 
 ### Aegis.Service.Tests
 - `AegisBackgroundServiceTests.cs`: Background service lifecycle, DB initialization call, and health reporting.
-- `ServiceApiTests.cs` & `FullApiEndpointTests.cs`: `WebApplicationFactory` integration test suite covering `/health`, `/status/report`, `/policy`, `/handshake`, `/evaluate`, `/evaluate/ai/*`, `/unlock/*`, `/integrity/*`.
+- `ServiceApiTests.cs` & `FullApiEndpointTests.cs`: `WebApplicationFactory` integration test suite covering `/health`, `/status/report`, `/policy`, `/handshake`, `/evaluate`, `/evaluate/ai/*`, `/unlock/*`, `/integrity/*`, and `/deployment/*`.

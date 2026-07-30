@@ -29,8 +29,8 @@ Every document that references Aegis modules must use this table as the canonica
 | 11 | Security | CORE | Helpers (M1) | Auth, token issuance, HMAC verification, file integrity |
 | 12 | Local API | CORE | Subsystem (M1) | Authenticated localhost HTTP + named pipe endpoints |
 | 13 | Logging | CORE | Implemented (M0) | Structured JSON logs, rotation, diagnostics |
-| 14 | Installer | CORE | Dev Script (M1) | Deploys service, extension, config, database, keys |
-| 15 | Uninstaller | CORE | Pending (M9) | Verifies unlock, staged confirmations, clean removal |
+| 14 | Installer | CORE | Implemented (M9) | Deploys directory structure, policy JSONs, and initializes SQLite schema |
+| 15 | Uninstaller | CORE | Implemented (M9) | Commitment device lock gating (refuses removal when locked), clean reverse flow |
 | 16 | UI | CORE | Dashboard Shell (M1) | WinUI 3 dashboard, status cards, settings, unlock screens |
 | 17 | Proxy | EXTENDED | Implemented (M7) | Optional HTTP(S) inspection layer on dev port 19080 |
 | 18 | AI Modules | EXTENDED | Implemented (M8) | 3-Tier Cascade Gate: N-gram text, YCbCr heuristics & ONNX deep learning vision |

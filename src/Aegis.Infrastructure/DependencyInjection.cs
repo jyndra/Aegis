@@ -2,6 +2,7 @@ using Aegis.Core.Configuration;
 using Aegis.Core.Interfaces;
 using Aegis.Infrastructure.Ai;
 using Aegis.Infrastructure.Commitment;
+using Aegis.Infrastructure.Deployment;
 using Aegis.Infrastructure.Dns;
 using Aegis.Infrastructure.Health;
 using Aegis.Infrastructure.Integrity;
@@ -61,6 +62,10 @@ public static class DependencyInjection
         services.AddSingleton<IOnnxInferenceEngine, OnnxInferenceEngine>();
         services.AddSingleton<IAiTextClassifier, AiTextClassifier>();
         services.AddSingleton<IAiImageClassifier, NsfwImageClassifier>();
+
+        // 11. Deployment (Installer & Uninstaller with Commitment Lock gating)
+        services.AddSingleton<IInstallerService, InstallerService>();
+        services.AddSingleton<IUninstallerService, UninstallerService>();
 
         return services;
     }

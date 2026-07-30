@@ -108,7 +108,7 @@ Responsibilities:
 - backup/restore.
 
 ## 13. Installer module [CORE]
-Status: **Dev Bootstrap Implemented (Milestone 1)** in `scripts/dev-setup.ps1`.
+Status: **Implemented (Milestone 9)** in `Aegis.Infrastructure/Deployment/InstallerService.cs` (plus dev bootstrap in `scripts/dev-setup.ps1`). Automates clean folder hierarchy deployment (`%ProgramData%\Aegis`), default policy JSON generation, policy restoration, and SQLite database migration.
 Responsibilities:
 - install service,
 - set up policies,
@@ -118,8 +118,9 @@ Responsibilities:
 - configure defaults.
 
 ## 14. Uninstaller module [CORE]
+Status: **Implemented (Milestone 9)** in `Aegis.Infrastructure/Deployment/UninstallerService.cs`. Strictly gates uninstallation by querying `ICommitLockEngine`. If an active 25-day commitment device lock is running, uninstallation removal actions are rejected immediately.
 Responsibilities:
-- verify unlock eligibility,
+- verify unlock eligibility via commitment lock engine,
 - run staged confirmations,
 - reverse installer changes,
 - remove service and files cleanly.

@@ -54,9 +54,9 @@
 - [x] Optional NSFW image detection (`NsfwImageClassifier` YCbCr skin-tone and edge entropy analyzer).
 
 ## Milestone 9: Installer and uninstaller
-- Clean install flow.
-- Clean reverse flow.
-- Policy deployment and restoration.
+- [x] Clean install flow (`InstallerService` directory architecture and database migration).
+- [x] Clean reverse flow (`UninstallerService` with strict 25-day commitment device lock gating).
+- [x] Policy deployment and restoration (Default `keywords-default.json` and `regex-default.json` deployment & restore logic).
 
 ## Milestone 10: Hardening
 - performance tuning,

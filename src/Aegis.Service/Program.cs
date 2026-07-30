@@ -43,6 +43,7 @@ app.MapEvaluateEndpoints();
 app.MapUnlockEndpoints();
 app.MapIntegrityEndpoints();
 app.MapStatusEndpoints();
+app.MapDeploymentEndpoints();
 
 app.Run();
 
