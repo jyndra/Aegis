@@ -40,8 +40,7 @@ Responsibilities:
 - protection restoration.
 
 ## 5. Proxy module [EXTENDED]
-
-Deferred to Milestone 7. See ROADMAP.md.
+Status: **Implemented (Milestone 7)** in `Aegis.Infrastructure/Proxy/ProxyServer.cs`. Async TCP proxy listener bound to dedicated dev port `19080` (preventing conflicts with Docker, Kubernetes, Streamlit, and ML dev tools), HTTP request line parser, CONNECT tunneling, and Rule Engine interception.
 Responsibilities:
 - optional HTTPS-aware filtering,
 - search query inspection when available,
@@ -82,6 +81,7 @@ Responsibilities:
 - site-aware keyword policies.
 
 ## 10. Integrity module [CORE]
+Status: **Implemented (Milestone 6)** in `Aegis.Infrastructure/Integrity/IntegrityEngine.cs`. Boot-time audit (SQLite PRAGMA, HMAC row signatures, binary file hashes, subsystem baselines), periodic 5-minute background audit, self-healing policy restoration, and degraded-mode state transition.
 Responsibilities:
 - startup audits,
 - periodic audits,

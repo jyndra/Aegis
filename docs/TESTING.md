@@ -154,11 +154,13 @@ The solution includes 12 test suites across `tests/`:
 - `SecurityServiceTests.cs`: HMAC-SHA256 calculation, fixed-time verification, tampering detection, and Windows DPAPI round-trip data protection.
 - `SecurityServiceHandshakeTests.cs`: HMAC handshake authentication, timestamp skew rejection, and JWT token issuance & validation.
 - `CommitLockEngineTests.cs`: 25-day lock state persistence, 3-stage unlock workflow, 48-hour cooling-off period validation, and rate limiting.
+- `IntegrityEngineTests.cs`: Boot-time audit execution, SQLite PRAGMA checks, HMAC row signature verification, and self-healing policy restoration.
 - `SqliteStorageServiceTests.cs`: File creation, WAL mode initialization, `PRAGMA integrity_check`, backup, and restore.
 - `SystemTimeProviderTests.cs`: Monotonic tick calculations and UTC bounds.
 - `DnsPacketTests.cs`: Binary header/question parsing, block response packet building, and compression pointer loop protection.
 - `BlocklistRepositoryTests.cs`: Domain normalization and SQLite bulk ingestion.
 - `DnsFilterTests.cs`: In-memory lookup validation and UDP server lifecycle tests.
+- `ProxyServerTests.cs`: Dedicated dev port `19081` binding, HTTP request line evaluation, 403 Forbidden block response, and socket shutdown.
 - `RegexEngineTests.cs`: Regex matching and heuristic scoring.
 - `KeywordEngineTests.cs`: Search query parameter extraction and keyword matching.
 - `RuleEngineTests.cs`: Multi-stage pipeline evaluation, domain blocklist priority, and threshold scoring.

@@ -23,7 +23,7 @@ Every document that references Aegis modules must use this table as the canonica
 | 5 | Rule Engine | CORE | Implemented (M3) | Evaluates rules in priority order, produces allow/block decisions |
 | 6 | Keyword Engine | CORE | Implemented (M3) | Keyword matching, search-query evaluation, dynamic blacklists |
 | 7 | Regex Engine | CORE | Implemented (M3) | Domain-token matching, URL-pattern scoring, heuristics |
-| 8 | Integrity Engine | CORE | Pending (M6) | Boot-time and periodic audits, self-healing, degraded-mode transitions |
+| 8 | Integrity Engine | CORE | Implemented (M6) | Boot-time and periodic audits, self-healing, degraded-mode transitions |
 | 9 | Commit-Lock Engine | CORE | Implemented (M5) | 25-day timer, unlock workflow, uninstall gating |
 | 10 | Storage | CORE | Implemented (M1) | SQLite access, schema versioning, backup/restore |
 | 11 | Security | CORE | Helpers (M1) | Auth, token issuance, HMAC verification, file integrity |
@@ -32,7 +32,7 @@ Every document that references Aegis modules must use this table as the canonica
 | 14 | Installer | CORE | Dev Script (M1) | Deploys service, extension, config, database, keys |
 | 15 | Uninstaller | CORE | Pending (M9) | Verifies unlock, staged confirmations, clean removal |
 | 16 | UI | CORE | Dashboard Shell (M1) | WinUI 3 dashboard, status cards, settings, unlock screens |
-| 17 | Proxy | EXTENDED | Deferred (M7) | Optional HTTP(S) inspection layer (deferred to Milestone 7) |
+| 17 | Proxy | EXTENDED | Implemented (M7) | Optional HTTP(S) inspection layer on dev port 19080 |
 | 18 | AI Modules | EXTENDED | Deferred (M8) | Optional text/image classification (deferred to Milestone 8) |
 
 ## 3. Core data flow

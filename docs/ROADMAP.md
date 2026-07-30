@@ -40,14 +40,14 @@
 - [x] Cooldown and rate limiting (Max 3 failed attempts, 24h exponential lockout).
 
 ## Milestone 6: Integrity framework
-- Boot-time audit.
-- Continuous health checks.
-- Tamper detection.
-- Self-healing where supported.
+- [x] Boot-time audit (`IntegrityEngine` SQLite PRAGMA, HMAC row signatures, file hashes, subsystem baselines).
+- [x] Continuous health checks (Periodic background audit loop running every 5 minutes).
+- [x] Tamper detection (Detects missing policy files, modified binary hashes, or SQLite table tampering).
+- [x] Self-healing where supported (Auto-restores default policy JSON files & WAL checkpointing).
 
 ## Milestone 7: Proxy support
-- Optional system-wide or browser-wide proxy.
-- HTTPS-aware filtering for supported cases.
+- [x] Optional system-wide or browser-wide proxy (`ProxyServer` async TCP listener on isolated dev port `19080`).
+- [x] HTTPS-aware filtering for supported cases (HTTP GET/POST inspection and HTTPS `CONNECT` tunnel domain evaluation).
 
 ## Milestone 8: Advanced detection
 - Optional AI text classification.

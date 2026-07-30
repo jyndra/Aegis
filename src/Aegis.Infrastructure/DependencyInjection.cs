@@ -3,6 +3,8 @@ using Aegis.Core.Interfaces;
 using Aegis.Infrastructure.Commitment;
 using Aegis.Infrastructure.Dns;
 using Aegis.Infrastructure.Health;
+using Aegis.Infrastructure.Integrity;
+using Aegis.Infrastructure.Proxy;
 using Aegis.Infrastructure.Rules;
 using Aegis.Infrastructure.Security;
 using Aegis.Infrastructure.Storage;
@@ -20,6 +22,7 @@ public static class DependencyInjection
         services.Configure<ServiceOptions>(configuration.GetSection(ServiceOptions.SectionName));
         services.Configure<DnsOptions>(configuration.GetSection(DnsOptions.SectionName));
         services.Configure<FilteringOptions>(configuration.GetSection(FilteringOptions.SectionName));
+        services.Configure<ProxyOptions>(configuration.GetSection(ProxyOptions.SectionName));
 
         // 2. Storage & Migrator
         services.AddSingleton<DatabaseMigrator>();
@@ -46,6 +49,12 @@ public static class DependencyInjection
 
         // 7. Commitment Lock Engine
         services.AddSingleton<ICommitLockEngine, CommitLockEngine>();
+
+        // 8. Integrity Engine
+        services.AddSingleton<IIntegrityEngine, IntegrityEngine>();
+
+        // 9. Proxy Server
+        services.AddSingleton<IProxyServer, ProxyServer>();
 
         return services;
     }
