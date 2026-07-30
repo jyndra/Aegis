@@ -157,6 +157,9 @@ The solution includes 12 test suites across `tests/`:
 - `DnsPacketTests.cs`: Binary header/question parsing, block response packet building, and compression pointer loop protection.
 - `BlocklistRepositoryTests.cs`: Domain normalization and SQLite bulk ingestion.
 - `DnsFilterTests.cs`: In-memory lookup validation and UDP server lifecycle tests.
+- `RegexEngineTests.cs`: Regex matching and heuristic scoring.
+- `KeywordEngineTests.cs`: Search query parameter extraction and keyword matching.
+- `RuleEngineTests.cs`: Multi-stage pipeline evaluation, domain blocklist priority, and threshold scoring.
 - `ConfigValidatorTests.cs`: Service configuration rules.
 - `DependencyInjectionTests.cs`: Container resolution for `AddAegisInfrastructure()` registered services.
 

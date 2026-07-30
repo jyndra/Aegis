@@ -22,10 +22,10 @@
 - [x] Basic decision logging (`events` table logging for DNS blocks/allows).
 
 ## Milestone 3: Rule engine
-- Regex engine.
-- Keyword engine.
-- Scoring system.
-- Allow/block/redirect decisions.
+- [x] Regex engine (`RegexEngine` with ReDoS `MatchTimeout` protection).
+- [x] Keyword engine (`KeywordEngine` URL parameter & title inspection).
+- [x] Scoring system (`RuleEngine` score thresholding & 5ms budget enforcement).
+- [x] Allow/block/redirect decisions (`EvaluationResult` pipeline).
 
 ## Milestone 4: Browser extension
 - Manifest V3 extension.

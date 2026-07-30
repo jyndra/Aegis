@@ -57,6 +57,7 @@ Responsibilities:
 - render block pages.
 
 ## 7. Rule engine module [CORE]
+Status: **Implemented (Milestone 3)** in `Aegis.Infrastructure/Rules/RuleEngine.cs`. Multi-stage priority pipeline (Domain Blocklist -> Regex Heuristics -> Keyword Scoring), score threshold checking (70), and 5ms execution budget enforcement.
 Responsibilities:
 - evaluate rules in priority order,
 - normalize inputs,
@@ -64,6 +65,7 @@ Responsibilities:
 - produce final decision.
 
 ## 8. Regex engine module [CORE]
+Status: **Implemented (Milestone 3)** in `Aegis.Infrastructure/Rules/RegexEngine.cs`. Compiled regex heuristics, ReDoS protection via strict `MatchTimeout = 5ms`, and JSON policy reloading (`policies/regex-default.json`).
 Responsibilities:
 - domain token matching,
 - URL pattern scoring,
@@ -71,6 +73,7 @@ Responsibilities:
 - curated porn domain heuristics.
 
 ## 9. Keyword engine module [CORE]
+Status: **Implemented (Milestone 3)** in `Aegis.Infrastructure/Rules/KeywordEngine.cs`. URL query parameter extraction, page title inspection, word-boundary (`\b`) matching, and JSON policy reloading (`policies/keywords-default.json`).
 Responsibilities:
 - keyword matching,
 - search-query evaluation,
