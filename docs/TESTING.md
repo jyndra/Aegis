@@ -137,3 +137,32 @@ Required tests per SECURITY.md §10:
 - [ ] Unlock flow expires mid-stage → progress reset, event logged.
 - [ ] System clock jumped forward → lock timer cross-references monotonic time.
 - [ ] System clock jumped backward → lock timer cross-references monotonic time.
+
+## 11. Active test suites (Milestone 0–2)
+
+The solution includes 12 test suites across `tests/`:
+
+### Aegis.Core.Tests
+- `AegisExceptionTests.cs`: Error code mapping and inner exception handling.
+- `ConfigurationOptionsTests.cs`: Default option values and section name constants.
+- `DomainModelsTests.cs`: Record equality, immutability, and property verification.
+
+### Aegis.Infrastructure.Tests
+- `DatabaseMigratorTests.cs`: In-memory SQLite DDL schema creation and v1 migration.
+- `HealthReporterTests.cs`: Persistence to `module_health` SQLite table and fallback baselines.
+- `ModuleHealthRepositoryTests.cs`: SQLite `UPSERT` conflict resolution.
+- `SecurityServiceTests.cs`: HMAC-SHA256 calculation, fixed-time verification, tampering detection, and Windows DPAPI round-trip data protection.
+- `SqliteStorageServiceTests.cs`: File creation, WAL mode initialization, `PRAGMA integrity_check`, backup, and restore.
+- `SystemTimeProviderTests.cs`: Monotonic tick calculations and UTC bounds.
+- `DnsPacketTests.cs`: Binary header/question parsing, block response packet building, and compression pointer loop protection.
+- `BlocklistRepositoryTests.cs`: Domain normalization and SQLite bulk ingestion.
+- `DnsFilterTests.cs`: In-memory lookup validation and UDP server lifecycle tests.
+- `RegexEngineTests.cs`: Regex matching and heuristic scoring.
+- `KeywordEngineTests.cs`: Search query parameter extraction and keyword matching.
+- `RuleEngineTests.cs`: Multi-stage pipeline evaluation, domain blocklist priority, and threshold scoring.
+- `ConfigValidatorTests.cs`: Service configuration rules.
+- `DependencyInjectionTests.cs`: Container resolution for `AddAegisInfrastructure()` registered services.
+
+### Aegis.Service.Tests
+- `AegisBackgroundServiceTests.cs`: Background service lifecycle, DB initialization call, and health reporting.
+- `ServiceApiTests.cs` & `FullApiEndpointTests.cs`: `WebApplicationFactory` integration test suite covering `/health`, `/status/report`, `/policy`, `/handshake`, `/evaluate`, `/unlock/*`, `/integrity/*`.

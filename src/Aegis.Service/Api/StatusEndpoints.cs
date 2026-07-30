@@ -9,7 +9,7 @@ public static class StatusEndpoints
         routes.MapGet("/status/report", async (IHealthReporter healthReporter, CancellationToken cancellationToken) =>
         {
             var reports = await healthReporter.GetStatusReportAsync(cancellationToken);
-            bool isDegraded = reports.Any(r => string.Equals(r.Status, "Degraded", StringComparison.OrdinalIgnoreCase));
+            bool isDegraded = reports.Any(r => !string.Equals(r.Status, "Healthy", StringComparison.OrdinalIgnoreCase));
 
             return Results.Ok(new
             {

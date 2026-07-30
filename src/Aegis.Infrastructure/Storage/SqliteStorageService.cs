@@ -33,6 +33,8 @@ public class SqliteStorageService : IStorageService
             Mode = SqliteOpenMode.ReadWriteCreate,
             Cache = SqliteCacheMode.Shared
         }.ToString();
+
+        _migrator.ConfigureConnectionFactory(CreateConnection);
     }
 
     public string DbPath => _dbPath;
@@ -56,7 +58,7 @@ public class SqliteStorageService : IStorageService
             using var connection = CreateConnection();
             await connection.OpenAsync(cancellationToken);
 
-            // Configure PRAGMAs for WAL mode & safety
+            // Configure PRAGMAs for WAL mode & foreign keys
             var pragmaCmd = connection.CreateCommand();
             pragmaCmd.CommandText = "PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; PRAGMA synchronous=NORMAL;";
             await pragmaCmd.ExecuteNonQueryAsync(cancellationToken);
@@ -100,10 +102,30 @@ public class SqliteStorageService : IStorageService
         }
     }
 
+    public async Task CheckpointWalAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var connection = CreateConnection();
+            await connection.OpenAsync(cancellationToken);
+
+            var cmd = connection.CreateCommand();
+            cmd.CommandText = "PRAGMA wal_checkpoint(TRUNCATE);";
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
+            _logger.LogDebug("WAL checkpoint executed on {Path}", _dbPath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to execute WAL checkpoint on {Path}", _dbPath);
+        }
+    }
+
     public async Task BackupDatabaseAsync(string backupPath, CancellationToken cancellationToken = default)
     {
         try
         {
+            await CheckpointWalAsync(cancellationToken);
+
             using var sourceConn = CreateConnection();
             await sourceConn.OpenAsync(cancellationToken);
 
@@ -135,7 +157,21 @@ public class SqliteStorageService : IStorageService
 
         try
         {
+            // Truncate active WAL before restore
+            await CheckpointWalAsync(cancellationToken);
+
+            // Close connection pool caches
+            SqliteConnection.ClearAllPools();
+
             File.Copy(backupPath, _dbPath, overwrite: true);
+
+            // Clean up auxiliary WAL/SHM files
+            string walFile = _dbPath + "-wal";
+            string shmFile = _dbPath + "-shm";
+
+            if (File.Exists(walFile)) { try { File.Delete(walFile); } catch { } }
+            if (File.Exists(shmFile)) { try { File.Delete(shmFile); } catch { } }
+
             _logger.LogInformation("Database restored successfully from {BackupPath}", backupPath);
         }
         catch (Exception ex)
