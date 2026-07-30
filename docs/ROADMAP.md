@@ -50,8 +50,8 @@
 - [x] HTTPS-aware filtering for supported cases (HTTP GET/POST inspection and HTTPS `CONNECT` tunnel domain evaluation).
 
 ## Milestone 8: Advanced detection
-- Optional AI text classification.
-- Optional NSFW image detection.
+- [x] Optional AI text classification (`AiTextClassifier` N-gram & Bayesian token analyzer).
+- [x] Optional NSFW image detection (`NsfwImageClassifier` YCbCr skin-tone and edge entropy analyzer).
 
 ## Milestone 9: Installer and uninstaller
 - Clean install flow.

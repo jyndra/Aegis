@@ -33,7 +33,7 @@ Every document that references Aegis modules must use this table as the canonica
 | 15 | Uninstaller | CORE | Pending (M9) | Verifies unlock, staged confirmations, clean removal |
 | 16 | UI | CORE | Dashboard Shell (M1) | WinUI 3 dashboard, status cards, settings, unlock screens |
 | 17 | Proxy | EXTENDED | Implemented (M7) | Optional HTTP(S) inspection layer on dev port 19080 |
-| 18 | AI Modules | EXTENDED | Deferred (M8) | Optional text/image classification (deferred to Milestone 8) |
+| 18 | AI Modules | EXTENDED | Implemented (M8) | 3-Tier Cascade Gate: N-gram text, YCbCr heuristics & ONNX deep learning vision |
 
 ## 3. Core data flow
 

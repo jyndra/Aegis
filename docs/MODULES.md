@@ -141,14 +141,13 @@ Responsibilities:
 - diagnostics,
 - event correlation.
 
-## 17. Future AI modules [EXTENDED]
-
-Deferred to Milestone 8. See ROADMAP.md.
+## 17. AI modules [EXTENDED]
+Status: **Implemented (Milestone 8 Option B)** in `Aegis.Infrastructure/Ai/`. Features the **3-Tier Cascade Gate**: Gate 1 (<0.1ms size bypass for UI icons), Gate 2 (<2ms YCbCr skin-tone pre-filter), and Gate 3 (CPU throttled `OnnxInferenceEngine` deep learning vision model to distinguish explicit anatomy from benign portraits or beach photography without browsing lag). Integrated into `RuleEngine` for Stage 4 AI boosting.
 Responsibilities:
-- text classification,
-- image classification,
+- 3-tier high-accuracy image classification,
+- N-gram text classification,
 - decision augmentation,
-- model health checks.
+- CPU-throttled visual model inference.
 
 ## 18. Module boundaries
 No module should:

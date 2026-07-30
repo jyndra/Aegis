@@ -12,6 +12,7 @@ public class RuleEngine : IRuleEngine
     private readonly IBlocklistRepository _blocklistRepo;
     private readonly IRegexEngine _regexEngine;
     private readonly IKeywordEngine _keywordEngine;
+    private readonly IAiTextClassifier? _aiTextClassifier;
     private readonly IOptions<FilteringOptions> _options;
     private readonly ILogger<RuleEngine> _logger;
 
@@ -20,13 +21,15 @@ public class RuleEngine : IRuleEngine
         IRegexEngine regexEngine,
         IKeywordEngine keywordEngine,
         IOptions<FilteringOptions> options,
-        ILogger<RuleEngine> logger)
+        ILogger<RuleEngine> logger,
+        IAiTextClassifier? aiTextClassifier = null)
     {
         _blocklistRepo = blocklistRepo;
         _regexEngine = regexEngine;
         _keywordEngine = keywordEngine;
         _options = options;
         _logger = logger;
+        _aiTextClassifier = aiTextClassifier;
     }
 
     public async Task<EvaluationResult> EvaluateAsync(EvaluationRequest request, CancellationToken cancellationToken = default)
@@ -85,6 +88,19 @@ public class RuleEngine : IRuleEngine
             int totalScore = regexScore + keywordScore;
 
             int threshold = _options.Value.ScoreThreshold;
+
+            // Stage 4: AI Text Classification for Ambiguous Scores
+            if (totalScore < threshold && totalScore >= threshold - 35 && _aiTextClassifier != null)
+            {
+                var aiResult = await _aiTextClassifier.ClassifyTextAsync(targetText, cts.Token);
+                if (aiResult.IsExplicit || aiResult.ConfidenceScore >= 0.70)
+                {
+                    int boost = (int)(aiResult.ConfidenceScore * 40);
+                    totalScore += boost;
+                    _logger.LogInformation("RuleEngine AI BOOST: Target '{Url}' boosted by +{Boost} (Confidence: {Confidence}) to new total {Total}.",
+                        request.Url, boost, aiResult.ConfidenceScore, totalScore);
+                }
+            }
 
             _logger.LogDebug("RuleEngine Evaluated '{Url}': RegexScore={Regex}, KeywordScore={Keyword}, TotalScore={Total} (Threshold: {Threshold})",
                 request.Url, regexScore, keywordScore, totalScore, threshold);

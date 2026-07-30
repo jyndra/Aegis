@@ -1,5 +1,6 @@
 using Aegis.Core.Configuration;
 using Aegis.Core.Interfaces;
+using Aegis.Infrastructure.Ai;
 using Aegis.Infrastructure.Commitment;
 using Aegis.Infrastructure.Dns;
 using Aegis.Infrastructure.Health;
@@ -55,6 +56,11 @@ public static class DependencyInjection
 
         // 9. Proxy Server
         services.AddSingleton<IProxyServer, ProxyServer>();
+
+        // 10. Advanced Detection AI modules (Option B: 3-Tier ONNX Pipeline)
+        services.AddSingleton<IOnnxInferenceEngine, OnnxInferenceEngine>();
+        services.AddSingleton<IAiTextClassifier, AiTextClassifier>();
+        services.AddSingleton<IAiImageClassifier, NsfwImageClassifier>();
 
         return services;
     }

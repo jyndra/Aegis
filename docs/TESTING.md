@@ -163,10 +163,12 @@ The solution includes 12 test suites across `tests/`:
 - `ProxyServerTests.cs`: Dedicated dev port `19081` binding, HTTP request line evaluation, 403 Forbidden block response, and socket shutdown.
 - `RegexEngineTests.cs`: Regex matching and heuristic scoring.
 - `KeywordEngineTests.cs`: Search query parameter extraction and keyword matching.
-- `RuleEngineTests.cs`: Multi-stage pipeline evaluation, domain blocklist priority, and threshold scoring.
+- `RuleEngineTests.cs`: Multi-stage pipeline evaluation, domain blocklist priority, and threshold scoring with optional Stage 4 AI boosting.
+- `AiTextClassifierTests.cs`: N-gram TF-IDF & Bayesian probability text classification for safe, suggestive, and explicit content.
+- `NsfwImageClassifierTests.cs`: Verifies Option B 3-Tier Cascade Gate (Gate 1 icon bypass, Gate 2 YCbCr allow without neural net, and Gate 3 ONNX deep learning vision evaluation).
 - `ConfigValidatorTests.cs`: Service configuration rules.
 - `DependencyInjectionTests.cs`: Container resolution for `AddAegisInfrastructure()` registered services.
 
 ### Aegis.Service.Tests
 - `AegisBackgroundServiceTests.cs`: Background service lifecycle, DB initialization call, and health reporting.
-- `ServiceApiTests.cs` & `FullApiEndpointTests.cs`: `WebApplicationFactory` integration test suite covering `/health`, `/status/report`, `/policy`, `/handshake`, `/evaluate`, `/unlock/*`, `/integrity/*`.
+- `ServiceApiTests.cs` & `FullApiEndpointTests.cs`: `WebApplicationFactory` integration test suite covering `/health`, `/status/report`, `/policy`, `/handshake`, `/evaluate`, `/evaluate/ai/*`, `/unlock/*`, `/integrity/*`.
