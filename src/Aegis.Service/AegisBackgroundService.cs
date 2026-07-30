@@ -8,23 +8,28 @@ public class AegisBackgroundService : BackgroundService
 {
     private readonly IStorageService _storageService;
     private readonly IHealthReporter _healthReporter;
+    private readonly ITimeProvider _timeProvider;
     private readonly IOptions<ServiceOptions> _options;
     private readonly ILogger<AegisBackgroundService> _logger;
+    private DateTimeOffset _startTime;
 
     public AegisBackgroundService(
         IStorageService storageService,
         IHealthReporter healthReporter,
+        ITimeProvider timeProvider,
         IOptions<ServiceOptions> options,
         ILogger<AegisBackgroundService> logger)
     {
         _storageService = storageService;
         _healthReporter = healthReporter;
+        _timeProvider = timeProvider;
         _options = options;
         _logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        _startTime = _timeProvider.UtcNow;
         _logger.LogInformation("Aegis Protection Service starting (Milestone 1)...");
 
         try
@@ -60,7 +65,9 @@ public class AegisBackgroundService : BackgroundService
 
                 // Periodic health pulse
                 bool dbOk = await _storageService.CheckIntegrityAsync(stoppingToken);
-                await _healthReporter.RecordHealthAsync("Service", "Healthy", $"{{\"uptimeSec\": {Environment.TickCount64 / 1000}}}", stoppingToken);
+                long uptimeSec = (long)(_timeProvider.UtcNow - _startTime).TotalSeconds;
+
+                await _healthReporter.RecordHealthAsync("Service", "Healthy", $"{{\"uptimeSec\": {uptimeSec}}}", stoppingToken);
                 await _healthReporter.RecordHealthAsync("Database", dbOk ? "Healthy" : "Degraded", $"{{\"integrity\": \"{(dbOk ? "OK" : "FAILED")}\"}}", stoppingToken);
 
                 _logger.LogDebug("Periodic Aegis health check pulse executed.");

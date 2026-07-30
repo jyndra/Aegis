@@ -7,10 +7,28 @@ namespace Aegis.Infrastructure.Storage;
 public class DatabaseMigrator : IDatabaseMigrator
 {
     private readonly ILogger<DatabaseMigrator> _logger;
+    private Func<SqliteConnection>? _connectionFactory;
 
     public DatabaseMigrator(ILogger<DatabaseMigrator> logger)
     {
         _logger = logger;
+    }
+
+    public void ConfigureConnectionFactory(Func<SqliteConnection> connectionFactory)
+    {
+        _connectionFactory = connectionFactory;
+    }
+
+    public async Task MigrateAsync(CancellationToken cancellationToken = default)
+    {
+        if (_connectionFactory == null)
+        {
+            throw new InvalidOperationException("Connection factory not configured for DatabaseMigrator.");
+        }
+
+        using var connection = _connectionFactory();
+        await connection.OpenAsync(cancellationToken);
+        await MigrateAsync(connection, cancellationToken);
     }
 
     public async Task MigrateAsync(SqliteConnection connection, CancellationToken cancellationToken = default)
@@ -26,14 +44,16 @@ public class DatabaseMigrator : IDatabaseMigrator
         }
     }
 
-    public async Task MigrateAsync(CancellationToken cancellationToken = default)
-    {
-        throw new InvalidOperationException("Use MigrateAsync(SqliteConnection) for migration execution.");
-    }
-
     public async Task<int> GetCurrentVersionAsync(CancellationToken cancellationToken = default)
     {
-        return 0;
+        if (_connectionFactory == null)
+        {
+            return 0;
+        }
+
+        using var connection = _connectionFactory();
+        await connection.OpenAsync(cancellationToken);
+        return await GetCurrentVersionAsync(connection, cancellationToken);
     }
 
     public async Task<int> GetCurrentVersionAsync(SqliteConnection connection, CancellationToken cancellationToken = default)

@@ -10,6 +10,11 @@ public class HealthReporter : IHealthReporter
     private readonly ITimeProvider _timeProvider;
     private readonly ILogger<HealthReporter> _logger;
 
+    private static readonly string[] RecognizedSubsystems = new[]
+    {
+        "Service", "Database", "DNS", "Extension", "Watchdog"
+    };
+
     public HealthReporter(IModuleHealthRepository healthRepo, ITimeProvider timeProvider, ILogger<HealthReporter> logger)
     {
         _healthRepo = healthRepo;
@@ -32,19 +37,38 @@ public class HealthReporter : IHealthReporter
 
     public async Task<IReadOnlyList<HealthReport>> GetStatusReportAsync(CancellationToken cancellationToken = default)
     {
-        var reports = await _healthRepo.GetAllHealthReportsAsync(cancellationToken);
-        if (reports.Count == 0)
+        var dbReports = await _healthRepo.GetAllHealthReportsAsync(cancellationToken);
+        var reportMap = dbReports.ToDictionary(r => r.Component, StringComparer.OrdinalIgnoreCase);
+
+        var result = new List<HealthReport>();
+
+        foreach (var subsystem in RecognizedSubsystems)
         {
-            // Return baseline reports if database has no reports yet
-            return new List<HealthReport>
+            if (reportMap.TryGetValue(subsystem, out var existing))
             {
-                new("Service", "Healthy", _timeProvider.UtcNow, "{\"message\": \"Windows Service running in-process\"}"),
-                new("Database", "Healthy", _timeProvider.UtcNow, "{\"message\": \"SQLite WAL mode initialized\"}"),
-                new("DNS", "Healthy", _timeProvider.UtcNow, "{\"message\": \"DNS proxy standby\"}"),
-                new("Extension", "Healthy", _timeProvider.UtcNow, "{\"message\": \"Extension worker standby\"}")
-            };
+                result.Add(existing);
+            }
+            else
+            {
+                // Fallback baseline report if not yet recorded in database
+                result.Add(new HealthReport(
+                    Component: subsystem,
+                    Status: "Healthy",
+                    LastCheckedAt: _timeProvider.UtcNow,
+                    DetailJson: $"{{\"message\": \"{subsystem} subsystem standby\"}}"
+                ));
+            }
         }
 
-        return reports;
+        // Append any custom component reports not in standard RecognizedSubsystems list
+        foreach (var report in dbReports)
+        {
+            if (!RecognizedSubsystems.Contains(report.Component, StringComparer.OrdinalIgnoreCase))
+            {
+                result.Add(report);
+            }
+        }
+
+        return result;
     }
 }
