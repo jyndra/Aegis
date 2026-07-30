@@ -45,3 +45,5 @@ app.MapIntegrityEndpoints();
 app.MapStatusEndpoints();
 
 app.Run();
+
+public partial class Program { }

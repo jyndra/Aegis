@@ -14,7 +14,7 @@ namespace Aegis.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddAegisInfrastructure(this IServiceCollection services)
+    public static IServiceCollection AddAegisInfrastructure(this IServiceCollection services, string? customDbPath = null)
     {
         // Time & Configuration
         services.AddSingleton<ITimeProvider, SystemTimeProvider>();
@@ -31,9 +31,20 @@ public static class DependencyInjection
         services.AddSingleton<IIntegrityEngine, IntegrityEngine>();
         services.AddSingleton<ICommitLockEngine, CommitLockEngine>();
 
-        // Storage & Repositories
-        services.AddSingleton<IStorageService, SqliteStorageService>();
-        services.AddSingleton<IDatabaseMigrator, DatabaseMigrator>();
+        // Storage & Database
+        services.AddSingleton<DatabaseMigrator>();
+        services.AddSingleton<IDatabaseMigrator>(sp => sp.GetRequiredService<DatabaseMigrator>());
+
+        services.AddSingleton<SqliteStorageService>(sp =>
+            new SqliteStorageService(
+                sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<SqliteStorageService>>(),
+                sp.GetRequiredService<DatabaseMigrator>(),
+                customDbPath
+            )
+        );
+        services.AddSingleton<IStorageService>(sp => sp.GetRequiredService<SqliteStorageService>());
+
+        // Repositories
         services.AddSingleton<IBlocklistRepository, BlocklistRepository>();
         services.AddSingleton<IEventRepository, EventRepository>();
         services.AddSingleton<ILockStateRepository, LockStateRepository>();
