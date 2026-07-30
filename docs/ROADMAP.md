@@ -1,23 +1,19 @@
 # Aegis Roadmap
 
 ## Milestone 0: Repository foundation
-- Create project structure.
-- Add docs.
-- Add linting, formatting, and testing setup.
-- Add config loader and logging skeleton.
-- **Dev bootstrap script:** a PowerShell script (`scripts/dev-setup.ps1`) that:
-  - creates `%ProgramData%\Aegis\` directories,
-  - initializes a default `appsettings.json`,
-  - initializes an empty SQLite database with schema,
-  - generates dev-mode HMAC keys (unprotected, for testing only).
+- [x] Create project structure (.NET solution + 6 projects + 3 test projects).
+- [x] Add docs (19 architecture and design specifications).
+- [x] Add linting, formatting (.editorconfig), and testing setup (xUnit, Moq, FluentAssertions).
+- [x] Add config loader (`appsettings.json`) and logging skeleton (Serilog).
+- [x] **Dev bootstrap script:** a PowerShell script (`scripts/dev-setup.ps1`).
 
 ## Milestone 1: Service skeleton
-- Windows Service skeleton (runnable in-process for development, installable via `sc.exe` for integration testing).
-- Health reporting.
-- Local API stub.
-- SQLite initialization.
-- UI shell.
-- **Dev bootstrap update:** extend `dev-setup.ps1` to register the service via `sc.exe` and load the extension unpacked in Chrome/Edge.
+- [x] Windows Service skeleton (`AegisBackgroundService`, runnable in-process or via `sc.exe`).
+- [x] Health reporting (`HealthReporter` & `ModuleHealthRepository`).
+- [x] Local API stub (minimal APIs hosting `/health`, `/status/report`, `/policy`, `/handshake`, `/evaluate`, `/unlock/*`, `/integrity/*`).
+- [x] SQLite initialization (`SqliteStorageService` with WAL mode, integrity check, `DatabaseMigrator` v1 schema).
+- [x] UI shell (`Aegis.UI` WinUI 3 control panel).
+- [x] **Dev bootstrap update:** `dev-setup.ps1` with `-RegisterService` / `-UnregisterService` flags and browser extension guidance.
 
 ## Milestone 2: DNS filtering
 - [x] Local DNS module (`DnsFilter` async UDP listener on `127.0.0.1:53`).
