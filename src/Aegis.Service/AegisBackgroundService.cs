@@ -39,7 +39,7 @@ public class AegisBackgroundService : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _startTime = _timeProvider.UtcNow;
-        _logger.LogInformation("Aegis Protection Service starting (Milestone 7)...");
+        _logger.LogInformation("Aegis Protection Service starting...");
 
         try
         {
@@ -69,7 +69,7 @@ public class AegisBackgroundService : BackgroundService
             var bootAudit = await _integrityEngine.RunBootAuditAsync(stoppingToken);
             _logger.LogInformation("Boot-Time Integrity Audit complete. Status: {Status}", bootAudit.Healthy ? "PASSED" : "DEGRADED/HEALED");
 
-            _logger.LogInformation("Aegis Protection Service successfully initialized. Milestone 7 active.");
+            _logger.LogInformation("Aegis Protection Service successfully initialized and running.");
         }
         catch (Exception ex)
         {

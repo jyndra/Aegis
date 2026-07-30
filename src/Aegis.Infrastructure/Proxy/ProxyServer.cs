@@ -21,6 +21,8 @@ public class ProxyServer : IProxyServer
     private TcpListener? _listener;
     private CancellationTokenSource? _cts;
     private Task? _acceptTask;
+    // Hardening M10: Concurrency gate — prevents connection flood DoS exhausting ThreadPool
+    private readonly SemaphoreSlim _connectionGate = new(50, 50);
 
     public ProxyServer(
         IRuleEngine ruleEngine,
@@ -102,6 +104,10 @@ public class ProxyServer : IProxyServer
             _acceptTask = null;
         }
 
+        // Hardening M10: Dispose CTS to release native OS timer handle (was previously leaked)
+        _cts?.Dispose();
+        _cts = null;
+
         _logger.LogInformation("Aegis HTTP Proxy server stopped.");
     }
 
@@ -112,7 +118,25 @@ public class ProxyServer : IProxyServer
             try
             {
                 var client = await _listener.AcceptTcpClientAsync(cancellationToken);
-                _ = Task.Run(() => HandleClientAsync(client, cancellationToken), cancellationToken);
+
+                // Hardening M10: Concurrency gate — reject connection immediately if at capacity
+                if (!await _connectionGate.WaitAsync(0, cancellationToken))
+                {
+                    _logger.LogWarning("Proxy connection gate full (50 concurrent). Rejecting connection from {Remote}.",
+                        client.Client.RemoteEndPoint);
+                    using var stream = client.GetStream();
+                    byte[] busy = System.Text.Encoding.ASCII.GetBytes(
+                        "HTTP/1.1 503 Service Unavailable\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
+                    await stream.WriteAsync(busy, cancellationToken);
+                    client.Close();
+                    continue;
+                }
+
+                _ = Task.Run(async () =>
+                {
+                    try { await HandleClientAsync(client, cancellationToken); }
+                    finally { _connectionGate.Release(); }
+                }, cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {

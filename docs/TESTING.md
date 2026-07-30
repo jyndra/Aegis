@@ -168,6 +168,8 @@ The solution includes 12 test suites across `tests/`:
 - `NsfwImageClassifierTests.cs`: Verifies Option B 3-Tier Cascade Gate (Gate 1 icon bypass, Gate 2 YCbCr allow without neural net, and Gate 3 ONNX deep learning vision evaluation).
 - `InstallerServiceTests.cs`: Automated directory hierarchy creation, default policy file generation (`keywords-default.json` & `regex-default.json`), policy restoration, and SQLite database migration calls.
 - `UninstallerServiceTests.cs`: Commitment lock gating enforcement (verifying complete rejection of uninstallation when 25-day lock is active) and staged clean reverse removal when unlocked.
+- `RecoveryTests.cs` **(M10)**: End-to-end recovery scenarios — policy self-healing, corruption overwrite, custom rule preservation on upgrade, commitment lock uninstallation rejection (zero files deleted), and clean reverse flow.
+- `FailureModeTests.cs` **(M10)**: Hardness properties — `RuleEngine` fail-closed on exception (returns `Block` per RECOVERY.md Principle 1), allow-on-timeout (unevaluated content), null request guard, commitment lock rate-limit contract, and `DnsFilter` upstream-unreachable graceful degradation.
 - `ConfigValidatorTests.cs`: Service configuration rules.
 - `DependencyInjectionTests.cs`: Container resolution for `AddAegisInfrastructure()` registered services.
 

@@ -1,50 +1,59 @@
-using Aegis.Core.Configuration;
 using Aegis.Infrastructure;
 using Aegis.Service;
 using Aegis.Service.Api;
 using Serilog;
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Configure Serilog structured logging
+// Configure Serilog first so even startup failures are captured
 Log.Logger = new LoggerConfiguration()
-    .ReadFrom.Configuration(builder.Configuration)
-    .Enrich.FromLogContext()
     .WriteTo.Console()
-    .WriteTo.File(
-        path: Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Aegis", "logs", "aegis-.log"),
-        rollingInterval: RollingInterval.Day,
-        retainedFileCountLimit: 30)
-    .CreateLogger();
+    .CreateBootstrapLogger();
 
-builder.Host.UseSerilog();
-builder.Host.UseWindowsService();
+try
+{
+    var builder = WebApplication.CreateBuilder(args);
 
-// Bind configuration options
-builder.Services.Configure<ServiceOptions>(builder.Configuration.GetSection(ServiceOptions.SectionName));
-builder.Services.Configure<DnsOptions>(builder.Configuration.GetSection(DnsOptions.SectionName));
-builder.Services.Configure<FilteringOptions>(builder.Configuration.GetSection(FilteringOptions.SectionName));
-builder.Services.Configure<LockOptions>(builder.Configuration.GetSection(LockOptions.SectionName));
-builder.Services.Configure<ProxyOptions>(builder.Configuration.GetSection(ProxyOptions.SectionName));
+    // Configure Serilog from appsettings.json (overrides bootstrap logger)
+    builder.Host.UseSerilog((ctx, services, config) => config
+        .ReadFrom.Configuration(ctx.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext()
+        .WriteTo.Console()
+        .WriteTo.File(
+            path: Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                               "Aegis", "logs", "aegis-.log"),
+            rollingInterval: RollingInterval.Day,
+            retainedFileCountLimit: 30));
 
-// Add Infrastructure dependencies
-builder.Services.AddAegisInfrastructure();
+    builder.Host.UseWindowsService();
 
-// Register background loops
-builder.Services.AddHostedService<AegisBackgroundService>();
+    // Add Infrastructure dependencies (configuration binding is inside AddAegisInfrastructure)
+    builder.Services.AddAegisInfrastructure(builder.Configuration);
 
-var app = builder.Build();
+    // Register background loops
+    builder.Services.AddHostedService<AegisBackgroundService>();
 
-// Map API endpoints
-app.MapHealthEndpoints();
-app.MapPolicyEndpoints();
-app.MapHandshakeEndpoints();
-app.MapEvaluateEndpoints();
-app.MapUnlockEndpoints();
-app.MapIntegrityEndpoints();
-app.MapStatusEndpoints();
-app.MapDeploymentEndpoints();
+    var app = builder.Build();
 
-app.Run();
+    // Map API endpoints
+    app.MapHealthEndpoints();
+    app.MapPolicyEndpoints();
+    app.MapHandshakeEndpoints();
+    app.MapEvaluateEndpoints();
+    app.MapUnlockEndpoints();
+    app.MapIntegrityEndpoints();
+    app.MapStatusEndpoints();
+    app.MapDeploymentEndpoints();
+
+    app.Run();
+}
+catch (Exception ex)
+{
+    // Global unhandled exception catch — ensures all startup failures are logged before process exits
+    Log.Fatal(ex, "Aegis Service terminated unexpectedly during startup.");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
 
 public partial class Program { }

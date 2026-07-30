@@ -31,7 +31,7 @@ Responsibilities:
 - failure escalation.
 
 ## 4. DNS module [CORE]
-Status: **Implemented (Milestone 2)** in `Aegis.Infrastructure/Dns`. Async UDP proxy server on `127.0.0.1:53`, SQLite `domain_blocklist` & `HashSet` lookups, custom rules, and upstream forwarding.
+Status: **Hardened (Milestone 10)** in `Aegis.Infrastructure/Dns/DnsFilter.cs`. Async UDP proxy server on `127.0.0.1:53`, SQLite `domain_blocklist` lookups, custom rules, and upstream forwarding. M10 hardening: `volatile` field with `Volatile.Write` for thread-safe atomic blocklist swap; `CancellationTokenSource` disposal leak fixed in `StopAsync`.
 Responsibilities:
 - blocklists,
 - custom domains,
@@ -40,7 +40,7 @@ Responsibilities:
 - protection restoration.
 
 ## 5. Proxy module [EXTENDED]
-Status: **Implemented (Milestone 7)** in `Aegis.Infrastructure/Proxy/ProxyServer.cs`. Async TCP proxy listener bound to dedicated dev port `19080` (preventing conflicts with Docker, Kubernetes, Streamlit, and ML dev tools), HTTP request line parser, CONNECT tunneling, and Rule Engine interception.
+Status: **Hardened (Milestone 10)** in `Aegis.Infrastructure/Proxy/ProxyServer.cs`. Async TCP proxy listener on dedicated dev port `19080`. M10 hardening: `SemaphoreSlim(50, 50)` concurrency gate prevents connection-flood DoS (HTTP 503 when gate full); `CancellationTokenSource` disposal leak fixed in `StopAsync`.
 Responsibilities:
 - optional HTTPS-aware filtering,
 - search query inspection when available,
@@ -57,7 +57,7 @@ Responsibilities:
 - render block pages.
 
 ## 7. Rule engine module [CORE]
-Status: **Implemented (Milestone 3)** in `Aegis.Infrastructure/Rules/RuleEngine.cs`. Multi-stage priority pipeline (Domain Blocklist -> Regex Heuristics -> Keyword Scoring), score threshold checking (70), and 5ms execution budget enforcement.
+Status: **Hardened (Milestone 10)** in `Aegis.Infrastructure/Rules/RuleEngine.cs`. Multi-stage priority pipeline (Domain Blocklist → Regex Heuristics → Keyword Scoring → optional AI Boost), score threshold checking (70), and configurable execution budget. M10 hardening: exception handler now returns `Block` (fail-closed) per RECOVERY.md Principle 1 — "Fail closed. When in doubt, block." Timeout still returns `Allow` (content was unevaluated, not confirmed harmful).
 Responsibilities:
 - evaluate rules in priority order,
 - normalize inputs,

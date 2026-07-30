@@ -19,20 +19,20 @@ Every document that references Aegis modules must use this table as the canonica
 | 1 | Windows Service | CORE | Implemented (M1) | Host process, state owner, API host, module coordinator |
 | 2 | Watchdog | CORE | Skeleton (M0) | Monitors the service, restarts on failure, emits health events |
 | 3 | Browser Extension | CORE | Implemented (M4) | MV3 Chromium extension for URL/keyword/DOM inspection |
-| 4 | DNS Filter | CORE | Implemented (M2) | Local DNS proxy, domain blocklist enforcement |
-| 5 | Rule Engine | CORE | Implemented (M3) | Evaluates rules in priority order, produces allow/block decisions |
+| 4 | DNS Filter | CORE | Hardened (M10) | Local DNS proxy, domain blocklist; volatile thread-safe blocklist swap, CTS disposal fixed |
+| 5 | Rule Engine | CORE | Hardened (M10) | Evaluates rules in priority order; fail-closed on exception per RECOVERY.md Principle 1 |
 | 6 | Keyword Engine | CORE | Implemented (M3) | Keyword matching, search-query evaluation, dynamic blacklists |
 | 7 | Regex Engine | CORE | Implemented (M3) | Domain-token matching, URL-pattern scoring, heuristics |
 | 8 | Integrity Engine | CORE | Implemented (M6) | Boot-time and periodic audits, self-healing, degraded-mode transitions |
 | 9 | Commit-Lock Engine | CORE | Implemented (M5) | 25-day timer, unlock workflow, uninstall gating |
 | 10 | Storage | CORE | Implemented (M1) | SQLite access, schema versioning, backup/restore |
 | 11 | Security | CORE | Helpers (M1) | Auth, token issuance, HMAC verification, file integrity |
-| 12 | Local API | CORE | Subsystem (M1) | Authenticated localhost HTTP + named pipe endpoints |
-| 13 | Logging | CORE | Implemented (M0) | Structured JSON logs, rotation, diagnostics |
+| 12 | Local API | CORE | Hardened (M10) | Authenticated localhost HTTP; global exception handler added to Program.cs |
+| 13 | Logging | CORE | Hardened (M10) | Serilog two-phase bootstrap; Log.Fatal on unhandled startup exception |
 | 14 | Installer | CORE | Implemented (M9) | Deploys directory structure, policy JSONs, and initializes SQLite schema |
 | 15 | Uninstaller | CORE | Implemented (M9) | Commitment device lock gating (refuses removal when locked), clean reverse flow |
 | 16 | UI | CORE | Dashboard Shell (M1) | WinUI 3 dashboard, status cards, settings, unlock screens |
-| 17 | Proxy | EXTENDED | Implemented (M7) | Optional HTTP(S) inspection layer on dev port 19080 |
+| 17 | Proxy | EXTENDED | Hardened (M10) | HTTP(S) inspection on dev port 19080; SemaphoreSlim(50) concurrency gate, CTS disposal fixed |
 | 18 | AI Modules | EXTENDED | Implemented (M8) | 3-Tier Cascade Gate: N-gram text, YCbCr heuristics & ONNX deep learning vision |
 
 ## 3. Core data flow

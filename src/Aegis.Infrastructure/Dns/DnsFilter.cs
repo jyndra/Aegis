@@ -22,7 +22,8 @@ public class DnsFilter : IDnsFilter
     private UdpClient? _udpListener;
     private CancellationTokenSource? _cts;
     private Task? _listenerTask;
-    private HashSet<string> _inMemoryBlocklist = new(StringComparer.OrdinalIgnoreCase);
+    // Hardening M10: volatile ensures Volatile.Write in ReloadBlocklistAsync is visible to concurrent IsDomainBlockedAsync readers
+    private volatile HashSet<string> _inMemoryBlocklist = new(StringComparer.OrdinalIgnoreCase);
 
     public DnsFilter(
         IBlocklistRepository blocklistRepo,
@@ -107,6 +108,10 @@ public class DnsFilter : IDnsFilter
             _listenerTask = null;
         }
 
+        // Hardening M10: Dispose CTS to release native OS timer handle (was previously leaked)
+        _cts?.Dispose();
+        _cts = null;
+
         _logger.LogInformation("DNS Proxy listener stopped.");
     }
 
@@ -149,7 +154,9 @@ public class DnsFilter : IDnsFilter
             }
         }
 
-        _inMemoryBlocklist = newBlocklist;
+        // Hardening M10: Atomic volatile write — swap reference atomically so concurrent readers
+        // always see either the old complete set or the new complete set, never a partially-built collection
+        Volatile.Write(ref _inMemoryBlocklist!, newBlocklist);
         _logger.LogInformation("In-memory DNS blocklist ready with {Count} domains.", _inMemoryBlocklist.Count);
     }
 

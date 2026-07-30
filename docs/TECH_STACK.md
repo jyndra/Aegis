@@ -54,19 +54,21 @@ Rationale:
 - .NET 8 has high-performance socket APIs,
 - a custom listener allows full control over blocklist matching and logging,
 - avoids external native dependencies,
-- domain lookups use an in-memory `HashSet<string>` populated from SQLite at startup.
+- domain lookups use an in-memory `HashSet<string>` (swapped via `Volatile.Write` on reload for thread-safe concurrent reads).
 
 The module listens on `127.0.0.1:53` and forwards non-blocked queries to the configured upstream DNS.
 
 ## 6. Proxy module
 
-Decision: **Deferred to Milestone 7.** When implemented, use `YARP` (Yet Another Reverse Proxy) or `Titanium.Web.Proxy` as a local HTTP/HTTPS proxy.
+Decision: **Custom async TCP listener** using `System.Net.Sockets.TcpListener` (implemented in Milestone 7). Supports plain HTTP proxying and HTTPS CONNECT tunneling.
 
 Rationale:
-- proxy is optional per ARCHITECTURE.md,
-- HTTPS interception requires a custom root CA (opt-in only),
-- YARP is a Microsoft-supported high-performance proxy library,
-- Titanium.Web.Proxy has explicit MITM support if the user enables CA installation.
+- native .NET socket implementation; zero external native dependencies,
+- custom listener allows direct integration with `IRuleEngine` for per-request evaluation,
+- HTTPS via CONNECT tunnel (TLS passthrough, not MITM),
+- hardened with a `SemaphoreSlim(50, 50)` concurrency gate (M10) to prevent connection-flood DoS.
+
+Listens on `127.0.0.1:19080` (isolated dev port, not system proxy).
 
 ## 7. Persistence
 

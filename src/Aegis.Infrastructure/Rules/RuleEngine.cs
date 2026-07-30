@@ -131,7 +131,8 @@ public class RuleEngine : IRuleEngine
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
         {
-            _logger.LogWarning("RuleEngine evaluation exceeded time budget ({Timeout}ms). Defaulting to safe response.", timeoutMs);
+            // Timeout: content was not evaluated — cannot claim it is harmful, so Allow but warn
+            _logger.LogWarning("RuleEngine evaluation exceeded time budget ({Timeout}ms). Defaulting to Allow (content unevaluated).", timeoutMs);
 
             return new EvaluationResult(
                 Decision: FilterDecision.Allow,
@@ -144,13 +145,15 @@ public class RuleEngine : IRuleEngine
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error evaluating rules for URL '{Url}'", request.Url);
+            // Hardening M10: Fail-closed per RECOVERY.md \u00a7 Principle 1: "Fail closed. When in doubt, block."
+            // An exception here means the rule engine itself is broken — safer to block than to silently allow.
+            _logger.LogError(ex, "RuleEngine unhandled error evaluating URL '{Url}'. Failing closed (Block).", request.Url);
 
             return new EvaluationResult(
-                Decision: FilterDecision.Allow,
-                Reason: $"Rule evaluation error: {ex.Message}",
+                Decision: FilterDecision.Block,
+                Reason: $"Rule evaluation failed: {ex.Message} (fail-closed)",
                 Severity: FilterSeverity.Warning,
-                Action: "Allow",
+                Action: "Block",
                 ComponentState: "Protected",
                 RetryAfterSeconds: null
             );

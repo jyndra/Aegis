@@ -59,10 +59,10 @@
 - [x] Policy deployment and restoration (Default `keywords-default.json` and `regex-default.json` deployment & restore logic).
 
 ## Milestone 10: Hardening
-- performance tuning,
-- recovery tests,
-- failure mode tests,
-- comprehensive documentation.
+- [x] Performance tuning (`ProxyServer` SemaphoreSlim(50) concurrency gate, `DnsFilter` volatile thread-safe blocklist swap, duplicate config binding eliminated).
+- [x] Recovery tests (`RecoveryTests.cs`: policy self-healing, corruption overwrite, custom rule preservation, commitment lock rejection, clean reverse flow).
+- [x] Failure mode tests (`FailureModeTests.cs`: fail-closed `RuleEngine` on exception, allow-on-timeout, DNS upstream graceful degradation, null guard, rate-limit contract).
+- [x] Comprehensive documentation (all `/docs` updated, `TECH_STACK.md` finalized, hardening notes in `MODULES.md`).
 
 ## Release criterion
 A milestone is complete only when:
