@@ -4,6 +4,14 @@ export interface HandshakePayload {
   hmacSignature: string;
 }
 
+export interface HandshakeResponse {
+  token: string;
+  expiresInSeconds: number;
+  nonce: string;
+  currentState: string;
+  isLocked: boolean;
+}
+
 export interface EvaluationPayload {
   url: string;
   domain?: string;
@@ -19,4 +27,12 @@ export interface EvaluationResponse {
   reason: string;
   severity: string;
   action: string;
+  componentState: string;
+}
+
+export interface AegisStorageState {
+  token?: string;
+  tokenExpiresAt?: number;
+  serviceStatus?: 'Healthy' | 'Degraded';
+  lastCheckedAt?: number;
 }

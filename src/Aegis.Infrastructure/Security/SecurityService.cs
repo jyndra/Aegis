@@ -1,8 +1,12 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Aegis.Core.Errors;
 using Aegis.Core.Interfaces;
 using Aegis.Core.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Aegis.Infrastructure.Security;
 
@@ -10,12 +14,16 @@ public class SecurityService : ISecurityService
 {
     private readonly ILogger<SecurityService> _logger;
     private readonly byte[] _hmacKey;
+    private readonly SymmetricSecurityKey _jwtKey;
+    private const string PreSharedExtensionSecret = "aegis-extension-secret-dev";
+    private const int MaxAllowableClockSkewSeconds = 120;
 
     public SecurityService(ILogger<SecurityService> logger)
     {
         _logger = logger;
-        // Default dev key; in production DPAPI-protected key file is loaded
+        // Default dev keys; in production DPAPI-protected key files are loaded
         _hmacKey = Encoding.UTF8.GetBytes("AegisLocalSecurityDefaultSecretKey32Bytes!");
+        _jwtKey = new SymmetricSecurityKey(_hmacKey);
     }
 
     public string ComputeRowHmac(string payload)
@@ -72,11 +80,81 @@ public class SecurityService : ISecurityService
 
     public Task<HandshakeResponse> AuthenticateHandshakeAsync(HandshakeRequest request, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        if (request == null || string.IsNullOrWhiteSpace(request.ComponentId))
+        {
+            throw new AegisException(AegisErrorCodes.ComponentIdentityInvalid, "Invalid component identity");
+        }
+
+        // Verify timestamp freshness (±120 seconds for clock skew tolerance)
+        long nowSeconds = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        long skew = Math.Abs(nowSeconds - request.Timestamp);
+
+        if (skew > MaxAllowableClockSkewSeconds)
+        {
+            _logger.LogWarning("Handshake timestamp skewed by {SkewSec}s for component {Component}", skew, request.ComponentId);
+            throw new AegisException(AegisErrorCodes.TokenExpired, $"Handshake timestamp outside allowable skew window ({skew}s > {MaxAllowableClockSkewSeconds}s)");
+        }
+
+        // Compute HMAC using pre-shared extension secret
+        string payload = $"{request.ComponentId}:{request.Timestamp}";
+        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(PreSharedExtensionSecret));
+        byte[] computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(payload));
+        string expectedSignature = Convert.ToHexString(computedHash);
+
+        if (!CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(expectedSignature), Encoding.UTF8.GetBytes(request.HmacSignature.ToUpperInvariant())))
+        {
+            _logger.LogWarning("Handshake signature mismatch for component {Component}", request.ComponentId);
+            throw new AegisException(AegisErrorCodes.Unauthorized, "Handshake signature validation failed");
+        }
+
+        // Generate JWT Token (5-minute expiry)
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, request.ComponentId) }),
+            Expires = DateTime.UtcNow.AddMinutes(5),
+            SigningCredentials = new SigningCredentials(_jwtKey, SecurityAlgorithms.HmacSha256Signature)
+        };
+
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        string jwtToken = tokenHandler.WriteToken(token);
+
+        _logger.LogInformation("Authenticated handshake for component '{Component}'. Session token issued (Clock skew: {SkewSec}s).", request.ComponentId, skew);
+
+        return Task.FromResult(new HandshakeResponse(
+            Token: jwtToken,
+            ExpiresInSeconds: 300,
+            Nonce: Guid.NewGuid().ToString("N"),
+            CurrentState: ProtectionState.Protected,
+            IsLocked: true
+        ));
     }
 
     public bool ValidateSessionToken(string token, string requiredComponentId)
     {
-        throw new NotImplementedException();
+        if (string.IsNullOrWhiteSpace(token)) return false;
+
+        try
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = _jwtKey,
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                ClockSkew = TimeSpan.FromSeconds(10)
+            };
+
+            var principal = tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
+            string? sub = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            return string.Equals(sub, requiredComponentId, StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Session token validation failed");
+            return false;
+        }
     }
 }

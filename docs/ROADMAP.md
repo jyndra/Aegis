@@ -28,10 +28,10 @@
 - [x] Allow/block/redirect decisions (`EvaluationResult` pipeline).
 
 ## Milestone 4: Browser extension
-- Manifest V3 extension.
-- Authentication handshake.
-- URL/title/query inspection.
-- Block page rendering.
+- [x] Manifest V3 extension (`extension/` background service worker, content script, block.html).
+- [x] Authentication handshake (HMAC handshake, `POST /handshake`, JWT token cached in `chrome.storage.local`).
+- [x] URL/title/query inspection (Content script inspecting `document.title`, search params & SPA `history.pushState`).
+- [x] Block page rendering (Local dark mode `block.html` rendering upon `FilterDecision.Block`).
 
 ## Milestone 5: Commitment device
 - 25-day lock.

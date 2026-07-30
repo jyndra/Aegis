@@ -49,6 +49,7 @@ Responsibilities:
 - degraded-mode redirection.
 
 ## 6. Browser extension module [CORE]
+Status: **Implemented (Milestone 4)** in `extension/`. Manifest V3 Chromium extension with background service worker (`background.ts`), HMAC handshake, token storage in `chrome.storage.local`, alarm heartbeats, SPA router inspector (`content.ts`), and local dark mode block page (`block.html`).
 Responsibilities:
 - inspect browser-visible signals,
 - apply page blocking,

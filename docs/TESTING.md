@@ -152,6 +152,7 @@ The solution includes 12 test suites across `tests/`:
 - `HealthReporterTests.cs`: Persistence to `module_health` SQLite table and fallback baselines.
 - `ModuleHealthRepositoryTests.cs`: SQLite `UPSERT` conflict resolution.
 - `SecurityServiceTests.cs`: HMAC-SHA256 calculation, fixed-time verification, tampering detection, and Windows DPAPI round-trip data protection.
+- `SecurityServiceHandshakeTests.cs`: HMAC handshake authentication, timestamp skew rejection, and JWT token issuance & validation.
 - `SqliteStorageServiceTests.cs`: File creation, WAL mode initialization, `PRAGMA integrity_check`, backup, and restore.
 - `SystemTimeProviderTests.cs`: Monotonic tick calculations and UTC bounds.
 - `DnsPacketTests.cs`: Binary header/question parsing, block response packet building, and compression pointer loop protection.

@@ -18,7 +18,7 @@ Every document that references Aegis modules must use this table as the canonica
 |---|---|---|---|---|
 | 1 | Windows Service | CORE | Implemented (M1) | Host process, state owner, API host, module coordinator |
 | 2 | Watchdog | CORE | Skeleton (M0) | Monitors the service, restarts on failure, emits health events |
-| 3 | Browser Extension | CORE | Skeleton (M0) | MV3 Chromium extension for URL/keyword/DOM inspection |
+| 3 | Browser Extension | CORE | Implemented (M4) | MV3 Chromium extension for URL/keyword/DOM inspection |
 | 4 | DNS Filter | CORE | Implemented (M2) | Local DNS proxy, domain blocklist enforcement |
 | 5 | Rule Engine | CORE | Implemented (M3) | Evaluates rules in priority order, produces allow/block decisions |
 | 6 | Keyword Engine | CORE | Implemented (M3) | Keyword matching, search-query evaluation, dynamic blacklists |
