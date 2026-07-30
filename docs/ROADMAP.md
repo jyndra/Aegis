@@ -34,10 +34,10 @@
 - [x] Block page rendering (Local dark mode `block.html` rendering upon `FilterDecision.Block`).
 
 ## Milestone 5: Commitment device
-- 25-day lock.
-- Disable/uninstall gating.
-- Multi-stage confirmation workflow.
-- Cooldown and rate limiting.
+- [x] 25-day lock (`CommitLockEngine` 25-day active lock state in SQLite `lock_state`).
+- [x] Disable/uninstall gating (Locked state blocks disable/uninstall requests).
+- [x] Multi-stage confirmation workflow (3-stage unlock workflow with 48h cooling-off period).
+- [x] Cooldown and rate limiting (Max 3 failed attempts, 24h exponential lockout).
 
 ## Milestone 6: Integrity framework
 - Boot-time audit.

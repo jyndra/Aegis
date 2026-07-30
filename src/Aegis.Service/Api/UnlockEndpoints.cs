@@ -1,11 +1,30 @@
+using Aegis.Core.Interfaces;
+
 namespace Aegis.Service.Api;
+
+public record InitiateUnlockRequest(int Stage);
+public record ConfirmUnlockRequest(int Stage, string ConfirmationChallenge);
 
 public static class UnlockEndpoints
 {
     public static void MapUnlockEndpoints(this IEndpointRouteBuilder routes)
     {
-        routes.MapPost("/unlock/request", () => Results.Ok(new { status = "UnlockRequested", cooldownMinutes = 60 }));
-        routes.MapPost("/unlock/advance", () => Results.Ok(new { status = "UnlockAdvanced", stage = 1 }));
-        routes.MapPost("/unlock/cancel", () => Results.Ok(new { status = "UnlockCancelled" }));
+        routes.MapGet("/unlock/status", async (ICommitLockEngine lockEngine, CancellationToken cancellationToken) =>
+        {
+            var state = await lockEngine.GetLockStateAsync(cancellationToken);
+            return Results.Ok(state);
+        });
+
+        routes.MapPost("/unlock/initiate", async (InitiateUnlockRequest request, ICommitLockEngine lockEngine, CancellationToken cancellationToken) =>
+        {
+            var progress = await lockEngine.InitiateUnlockStageAsync(request.Stage, null, cancellationToken);
+            return Results.Ok(progress);
+        });
+
+        routes.MapPost("/unlock/confirm", async (ConfirmUnlockRequest request, ICommitLockEngine lockEngine, CancellationToken cancellationToken) =>
+        {
+            var progress = await lockEngine.InitiateUnlockStageAsync(request.Stage, request.ConfirmationChallenge, cancellationToken);
+            return Results.Ok(progress);
+        });
     }
 }

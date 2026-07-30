@@ -1,19 +1,18 @@
 namespace Aegis.Core.Models;
 
-/// <summary>
-/// Domain model representing the commitment lock state.
-/// </summary>
 public record LockState(
-    long Id,
-    bool IsLocked,
-    DateTimeOffset ActivatedAt,
-    DateTimeOffset ExpiresAt,
-    long ActivatedMonotonicTicks,
-    long ElapsedMonotonicTicks,
-    DateTimeOffset LastTickUpdateAt,
+    bool Locked,
+    DateTimeOffset LockStartedAt,
+    DateTimeOffset LockExpiresAt,
     DateTimeOffset? UnlockRequestedAt,
     int UnlockStage,
-    string UnlockState,
-    DateTimeOffset LastChangeAt,
-    string RowHmac
+    int FailedAttempts,
+    DateTimeOffset UpdatedAt
+);
+
+public record UnlockProgress(
+    bool Success,
+    int CurrentStage,
+    string Message,
+    TimeSpan? CooldownRemaining
 );

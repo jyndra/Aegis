@@ -24,7 +24,7 @@ Every document that references Aegis modules must use this table as the canonica
 | 6 | Keyword Engine | CORE | Implemented (M3) | Keyword matching, search-query evaluation, dynamic blacklists |
 | 7 | Regex Engine | CORE | Implemented (M3) | Domain-token matching, URL-pattern scoring, heuristics |
 | 8 | Integrity Engine | CORE | Pending (M6) | Boot-time and periodic audits, self-healing, degraded-mode transitions |
-| 9 | Commit-Lock Engine | CORE | Pending (M5) | 25-day timer, unlock workflow, uninstall gating |
+| 9 | Commit-Lock Engine | CORE | Implemented (M5) | 25-day timer, unlock workflow, uninstall gating |
 | 10 | Storage | CORE | Implemented (M1) | SQLite access, schema versioning, backup/restore |
 | 11 | Security | CORE | Helpers (M1) | Auth, token issuance, HMAC verification, file integrity |
 | 12 | Local API | CORE | Subsystem (M1) | Authenticated localhost HTTP + named pipe endpoints |

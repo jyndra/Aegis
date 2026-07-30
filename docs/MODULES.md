@@ -90,6 +90,7 @@ Responsibilities:
 - tamper logs.
 
 ## 11. Commit-lock module [CORE]
+Status: **Implemented (Milestone 5)** in `Aegis.Infrastructure/Commitment/CommitLockEngine.cs`. 25-day lock state persistence in SQLite `lock_state`, monotonic clock anti-tampering (`Stopwatch.GetTimestamp()`), 3-stage unlock workflow with mandatory 48-hour cooldown, and rate limiting.
 Responsibilities:
 - 25-day timer,
 - unlock requests,
