@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Aegis Protection Extension",
+  "version": "1.0.0",
+  "description": "Local content evaluation and protection agent for Aegis.",
+  "permissions": [
+    "declarativeNetRequest",
+    "declarativeNetRequestWithHostAccess",
+    "storage",
+    "alarms",
+    "webNavigation"
+  ],
+  "host_permissions": [
+    "https://127.0.0.1:9443/*",
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "dist/background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["dist/content.js"],
+      "run_at": "document_start"
+    }
+  ]
+}

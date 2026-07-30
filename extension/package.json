@@ -1,0 +1,16 @@
+{
+  "name": "aegis-extension",
+  "version": "1.0.0",
+  "description": "Aegis Chromium MV3 Content Filter Extension",
+  "main": "dist/background.js",
+  "type": "module",
+  "scripts": {
+    "build": "node esbuild.config.mjs",
+    "watch": "node esbuild.config.mjs --watch"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.268",
+    "esbuild": "^0.23.0",
+    "typescript": "^5.5.4"
+  }
+}
