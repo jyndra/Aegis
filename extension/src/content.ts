@@ -31,8 +31,28 @@ function inspectAndRequestEvaluation(): void {
         // Channel closed or background worker sleeping
         return;
       }
-      if (response && response.decision === 'Block') {
+      if (response && (response.decision === 'Block' || (response.decision as any) === 1 || response.action === 'Block')) {
         console.warn('[Aegis Extension] Block decision received for page:', currentUrl);
+        
+        try {
+          if (document && document.documentElement) {
+            document.documentElement.innerHTML = `
+              <div style="background: #0f172a; color: #f8fafc; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: system-ui, sans-serif; z-index: 99999999; position: fixed; top:0; left:0; width: 100vw; margin: 0; padding: 0;">
+                <h1 style="font-size: 3.5rem; margin-bottom: 1rem; color: #ef4444; font-weight: 800;">🛡️ Blocked by Aegis</h1>
+                <p style="font-size: 1.35rem; color: #cbd5e1; max-width: 600px; text-align: center;">${response.reason || 'Content protection threshold exceeded'}</p>
+                <p style="font-size: 0.95rem; color: #64748b; margin-top: 2.5rem;">Redirecting to safe zone...</p>
+              </div>
+            `;
+          }
+        } catch (e) {
+          console.warn('[Aegis Extension] Overlay injection error:', e);
+        }
+
+        const blockUrl = chrome.runtime.getURL(`block.html?url=${encodeURIComponent(currentUrl)}&reason=${encodeURIComponent(response.reason || 'Content threshold exceeded')}`);
+        if (window.location.href !== blockUrl) {
+          window.location.replace(blockUrl);
+          window.location.href = blockUrl;
+        }
       }
     }
   );
