@@ -34,8 +34,8 @@ MV3 service workers are **ephemeral**. Chrome will terminate the service worker 
 - Cannot exceed 5K session-scoped rules.
 
 ### Workaround
-- Bundle the primary domain blocklist as a static ruleset in the extension package. Update it via extension updates.
-- Use dynamic rules for custom user-added blocks and real-time policy additions from the service.
+- Bundle the primary domain blocklist as a static ruleset in the extension package using `requestDomains` instead of `urlFilter`. `requestDomains` natively matches the root domain and all subdomain variations (e.g., `www.`, `m.`, `pt.`), preventing protocol prefix evasion.
+- Use dynamic DNR rules (`chrome.declarativeNetRequest.updateDynamicRules`) to synchronize custom user-added websites directly from `GET /policy/custom-rules` during every heartbeat and background worker initialization, promoting user custom policies to native browser-engine blocking.
 - If the dynamic rule limit is approached, batch oldest custom rules into a static ruleset update.
 - Use the content script + local API fallback for keyword/regex blocking that cannot be expressed as declarativeNetRequest rules (since DNR only matches URL patterns, not page content).
 
@@ -49,12 +49,11 @@ MV3 removed the synchronous blocking variant of `chrome.webRequest.onBeforeReque
 - Keyword/content-based decisions cannot block the initial navigation — they can only redirect or close the tab after the fact.
 
 ### Workaround
-- Pre-populate declarativeNetRequest rules for all known blocked domains (covers 95%+ of cases).
-- For keyword/content-based blocking, use a content script that:
-  1. Runs at `document_start` or `document_idle`.
-  2. Scans page title, URL, and visible text.
-  3. If a match is found, immediately replaces the page body with the block page or navigates to the local block page.
-- Accept a brief flash of content before the content script blocks — this is an inherent MV3 limitation. Minimize it by injecting at `document_start` and hiding the body until scanned.
+- Pre-populate declarativeNetRequest rules with `requestDomains` for all known blocked domains and dynamically sync user custom blocklists (covers 99%+ of navigations instantly at the network layer with `ERR_BLOCKED_BY_CLIENT`).
+- For keyword/content-based runtime blocking, use a content script that:
+  1. Runs at `document_start` and intercepts SPA navigation events.
+  2. Scans page title, URL, and visible text against `POST /evaluate`.
+  3. Upon receiving a block decision, immediately injects an in-place full-screen HTML shield (`"🛡️ Blocked by Aegis"`) into `document.documentElement` to eliminate visual content exposure while executing asynchronous `window.location.replace` redirection to `block.html`.
 
 ## 5. Content script injection timing
 

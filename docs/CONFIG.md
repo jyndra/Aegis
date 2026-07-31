@@ -65,10 +65,11 @@ All files under `%ProgramData%\Aegis\` are ACL'd to the service account. The sta
     "keywordPackPaths": ["policies/keywords-default.json"],
     "regexPackPaths": ["policies/regex-default.json"],
     "ruleEvaluationTimeoutMs": 5,
-    "scoreThreshold": 70
+    "scoreThreshold": 40
   }
 }
 ```
+*Note on thresholding*: A default `scoreThreshold` of `40` guarantees that a single custom keyword or regex match (default weight `50`) immediately exceeds the safety threshold and triggers fail-closed intervention.
 
 ### 3.4 Commitment lock
 

@@ -48,16 +48,16 @@ Responsibilities:
 - degraded-mode redirection.
 
 ## 6. Browser extension module [CORE]
-Status: **Implemented (Milestone 4)** in `extension/`. Manifest V3 Chromium extension with background service worker (`background.ts`), HMAC handshake, token storage in `chrome.storage.local`, alarm heartbeats, SPA router inspector (`content.ts`), and local dark mode block page (`block.html`).
+Status: **Hardened (Milestone 10)** in `extension/`. Manifest V3 Chromium extension featuring two-tier native network-level protection: static `declarativeNetRequest` rules leveraging `requestDomains` for guaranteed root and subdomain blocklist matching, and dynamic rule synchronization (`updateDynamicRules`) pulling user custom sites directly from `/policy/custom-rules`. Includes background service worker (`background.ts`), HMAC handshake with token storage in `chrome.storage.local`, alarm heartbeats, SPA router interception (`content.ts`) with immediate DOM destruction shielding upon block decisions, and dark mode block page rendering (`block.html`).
 Responsibilities:
 - inspect browser-visible signals,
-- apply page blocking,
-- communicate with service,
-- report health,
-- render block pages.
+- apply native network-layer domain blocking (DNR static + dynamic sync),
+- communicate with service via CORS & Bearer tokens,
+- execute instant DOM shielding on runtime content block decisions,
+- report health and render block pages.
 
 ## 7. Rule engine module [CORE]
-Status: **Hardened (Milestone 10)** in `Aegis.Infrastructure/Rules/RuleEngine.cs`. Multi-stage priority pipeline (Domain Blocklist → Regex Heuristics → Keyword Scoring → optional AI Boost), score threshold checking (70), and configurable execution budget. M10 hardening: exception handler now returns `Block` (fail-closed) per RECOVERY.md Principle 1 — "Fail closed. When in doubt, block." Timeout still returns `Allow` (content was unevaluated, not confirmed harmful).
+Status: **Hardened (Milestone 10)** in `Aegis.Infrastructure/Rules/RuleEngine.cs`. Multi-stage priority pipeline (Domain Blocklist → Regex Heuristics → Keyword Scoring → optional AI Boost), score threshold checking (40), and configurable execution budget. M10 hardening: exception handler returns `Block` (fail-closed) per RECOVERY.md Principle 1 — "Fail closed. When in doubt, block." Timeout returns `Allow` (content was unevaluated, not confirmed harmful). A threshold of 40 ensures that single custom keyword hits (weight 50) immediately activate blocking.
 Responsibilities:
 - evaluate rules in priority order,
 - normalize inputs,
