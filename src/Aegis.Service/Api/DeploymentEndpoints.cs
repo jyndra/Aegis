@@ -33,9 +33,9 @@ public static class DeploymentEndpoints
             return Results.Ok(new { canUninstall, reason });
         });
 
-        group.MapPost("/uninstall", async (bool? forceConfirm, IUninstallerService uninstaller, CancellationToken ct) =>
+        group.MapPost("/uninstall", async (bool? forceConfirm, int? step, IUninstallerService uninstaller, CancellationToken ct) =>
         {
-            var result = await uninstaller.UninstallAsync(null, forceConfirm ?? false, ct);
+            var result = await uninstaller.UninstallAsync(null, forceConfirm ?? false, step ?? 10, ct);
             if (!result.Success && result.BlockedByCommitmentDevice)
             {
                 return Results.Problem(

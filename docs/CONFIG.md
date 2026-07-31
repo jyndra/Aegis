@@ -78,7 +78,8 @@ All files under `%ProgramData%\Aegis\` are ACL'd to the service account. The sta
     "defaultLockDays": 25,
     "unlockCooldownMinutes": 60,
     "unlockStages": 3,
-    "maxUnlockAttemptsPerDay": 3
+    "maxUnlockAttemptsPerDay": 3,
+    "bypassLockForTesting": true
   }
 }
 ```

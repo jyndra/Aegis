@@ -1,4 +1,5 @@
 using Aegis.Core.Configuration;
+using Aegis.Core.Interfaces;
 using Aegis.Core.Models;
 using Aegis.Infrastructure.Rules;
 using Aegis.Infrastructure.Storage;

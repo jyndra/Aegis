@@ -150,6 +150,15 @@ Responsibilities:
 - decision augmentation,
 - CPU-throttled visual model inference.
 
+## 19. Custom Policy module [CORE]
+Status: **Implemented** in `Aegis.Infrastructure/Rules/CustomPolicyService.cs`. Provides provisions for custom websites, custom keywords, and custom regex rules with hot-reloading in DNS, Keyword, and Regex engines. Enforces the **One-Way Protection Ratchet**: adding rules is permitted while locked, but modifying or deleting rules is strictly blocked during the 25-day commitment period.
+Responsibilities:
+- custom website blocklist additions,
+- custom keyword additions,
+- custom regex pattern validation & compilation,
+- protection ratchet enforcement (locked addition / post-cooldown modification),
+- test mode uninstallation authorization bypass (`BypassLockForTesting`).
+
 ## 18. Module boundaries
 No module should:
 - bypass another module's interface,

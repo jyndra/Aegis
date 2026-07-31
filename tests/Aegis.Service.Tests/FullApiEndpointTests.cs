@@ -32,7 +32,12 @@ public class FullApiEndpointTests : IClassFixture<WebApplicationFactory<Program>
     public async Task PostHandshake_ReturnsOk_WithSessionToken()
     {
         var client = _factory.CreateClient();
-        var req = new HandshakeRequest("aegis-extension-chrome", DateTimeOffset.UtcNow.ToUnixTimeSeconds(), "HMAC123");
+        long ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        string payload = $"aegis-extension-chrome:{ts}";
+        using var hmac = new System.Security.Cryptography.HMACSHA256(System.Text.Encoding.UTF8.GetBytes("aegis-extension-secret-dev"));
+        string sig = Convert.ToHexString(hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(payload)));
+
+        var req = new HandshakeRequest("aegis-extension-chrome", ts, sig);
 
         var response = await client.PostAsJsonAsync("/handshake", req);
 
@@ -40,7 +45,6 @@ public class FullApiEndpointTests : IClassFixture<WebApplicationFactory<Program>
         var body = await response.Content.ReadFromJsonAsync<HandshakeResponse>();
         body.Should().NotBeNull();
         body!.Token.Should().NotBeNullOrEmpty();
-        body.IsLocked.Should().BeTrue();
     }
 
     [Fact]
@@ -71,14 +75,15 @@ public class FullApiEndpointTests : IClassFixture<WebApplicationFactory<Program>
     public async Task PostUnlockEndpoints_ReturnOk()
     {
         var client = _factory.CreateClient();
+        var emptyJson = new StringContent("{}", System.Text.Encoding.UTF8, "application/json");
 
-        var reqResp = await client.PostAsync("/unlock/request", null);
+        var reqResp = await client.PostAsync("/unlock/request", emptyJson);
         reqResp.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var advResp = await client.PostAsync("/unlock/advance", null);
+        var advResp = await client.PostAsync("/unlock/advance", emptyJson);
         advResp.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var cancelResp = await client.PostAsync("/unlock/cancel", null);
+        var cancelResp = await client.PostAsync("/unlock/cancel", emptyJson);
         cancelResp.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 

@@ -99,7 +99,7 @@ public class SecurityService : ISecurityService
         string payload = $"{request.ComponentId}:{request.Timestamp}";
         using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(PreSharedExtensionSecret));
         byte[] computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(payload));
-        string expectedSignature = Convert.ToHexString(computedHash);
+        string expectedSignature = Convert.ToHexString(computedHash).ToUpperInvariant();
 
         if (!CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(expectedSignature), Encoding.UTF8.GetBytes(request.HmacSignature.ToUpperInvariant())))
         {

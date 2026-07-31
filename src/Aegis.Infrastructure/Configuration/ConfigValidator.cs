@@ -2,7 +2,7 @@ using Aegis.Core.Interfaces;
 
 namespace Aegis.Infrastructure.Configuration;
 
-internal class ConfigValidator : IConfigValidator
+public class ConfigValidator : IConfigValidator
 {
     public bool ValidateServiceConfig(out List<string> errors)
     {

@@ -1,6 +1,7 @@
 using System.Net.Sockets;
 using System.Text;
 using Aegis.Core.Configuration;
+using Aegis.Core.Interfaces;
 using Aegis.Core.Models;
 using Aegis.Infrastructure.Proxy;
 using Aegis.Infrastructure.Storage;

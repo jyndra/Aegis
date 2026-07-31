@@ -1,8 +1,11 @@
+using System.Text.Json.Serialization;
+
 namespace Aegis.Core.Models;
 
 /// <summary>
 /// Represents the base operational protection state of the Aegis system.
 /// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ProtectionState
 {
     /// <summary>

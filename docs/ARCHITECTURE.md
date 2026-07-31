@@ -34,6 +34,7 @@ Every document that references Aegis modules must use this table as the canonica
 | 16 | UI | CORE | Dashboard Shell (M1) | WinUI 3 dashboard, status cards, settings, unlock screens |
 | 17 | Proxy | EXTENDED | Hardened (M10) | HTTP(S) inspection on dev port 19080; SemaphoreSlim(50) concurrency gate, CTS disposal fixed |
 | 18 | AI Modules | EXTENDED | Implemented (M8) | 3-Tier Cascade Gate: N-gram text, YCbCr heuristics & ONNX deep learning vision |
+| 19 | Custom Policy | CORE | Implemented | Custom websites, keywords, regex provisions; One-Way Ratchet (locked addition, post-cooldown modification) |
 
 ## 3. Core data flow
 

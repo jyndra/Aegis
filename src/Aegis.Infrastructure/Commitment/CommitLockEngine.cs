@@ -44,18 +44,34 @@ public class CommitLockEngine : ICommitLockEngine
             ORDER BY id DESC LIMIT 1;
         ";
 
-        using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
-        if (await reader.ReadAsync(cancellationToken))
-        {
-            bool locked = reader.GetInt32(0) == 1;
-            var lockStartedAt = DateTimeOffset.Parse(reader.GetString(1));
-            var lockExpiresAt = DateTimeOffset.Parse(reader.GetString(2));
-            DateTimeOffset? unlockRequestedAt = reader.IsDBNull(3) ? null : DateTimeOffset.Parse(reader.GetString(3));
-            int stage = reader.GetInt32(4);
-            int failedAttempts = reader.GetInt32(5);
-            var updatedAt = DateTimeOffset.Parse(reader.GetString(6));
-            string hmac = reader.IsDBNull(7) ? "" : reader.GetString(7);
+        bool hasData = false;
+        bool locked = false;
+        DateTimeOffset lockStartedAt = DateTimeOffset.MinValue;
+        DateTimeOffset lockExpiresAt = DateTimeOffset.MinValue;
+        DateTimeOffset? unlockRequestedAt = null;
+        int stage = 0;
+        int failedAttempts = 0;
+        DateTimeOffset updatedAt = DateTimeOffset.MinValue;
+        string hmac = "";
 
+        using (var reader = await cmd.ExecuteReaderAsync(cancellationToken))
+        {
+            if (await reader.ReadAsync(cancellationToken))
+            {
+                hasData = true;
+                locked = reader.GetInt32(0) == 1;
+                lockStartedAt = DateTimeOffset.Parse(reader.GetString(1));
+                lockExpiresAt = DateTimeOffset.Parse(reader.GetString(2));
+                unlockRequestedAt = reader.IsDBNull(3) ? null : DateTimeOffset.Parse(reader.GetString(3));
+                stage = reader.GetInt32(4);
+                failedAttempts = reader.GetInt32(5);
+                updatedAt = DateTimeOffset.Parse(reader.GetString(6));
+                hmac = reader.IsDBNull(7) ? "" : reader.GetString(7);
+            }
+        }
+
+        if (hasData)
+        {
             // HMAC Integrity Verification
             string payload = $"{locked}:{lockStartedAt:o}:{lockExpiresAt:o}:{stage}:{failedAttempts}";
             if (!string.IsNullOrEmpty(hmac) && !_securityService.VerifyRowHmac(payload, hmac))
@@ -186,6 +202,24 @@ public class CommitLockEngine : ICommitLockEngine
         return !state.Locked || _timeProvider.UtcNow >= state.LockExpiresAt;
     }
 
+    public async Task<CommitLockStatus> GetStatusAsync(CancellationToken cancellationToken = default)
+    {
+        var state = await GetLockStateAsync(cancellationToken);
+        var now = _timeProvider.UtcNow;
+        var unlockStage = (UnlockStage)Math.Min(3, Math.Max(0, state.UnlockStage));
+        double secsRemaining = Math.Max(0, (state.LockExpiresAt - now).TotalSeconds);
+
+        return new CommitLockStatus(
+            Locked: state.Locked,
+            Stage: unlockStage,
+            StageChangedAt: state.UpdatedAt,
+            LockExpiresAt: state.LockExpiresAt,
+            CanAdvance: !state.Locked || now >= state.LockExpiresAt,
+            SecondsRemainingInStage: (long)secsRemaining,
+            NextStageAvailableAt: state.UnlockRequestedAt?.AddHours(48)
+        );
+    }
+
     public async Task ResetFailedAttemptsAsync(CancellationToken cancellationToken = default)
     {
         var state = await GetLockStateAsync(cancellationToken);
@@ -214,14 +248,14 @@ public class CommitLockEngine : ICommitLockEngine
             VALUES ($locked, $started_at, $expires_at, $requested_at, $stage, $failed, $updated_at, $hmac);
         ";
 
-        cmd.Parameters.AddWithValue("$locked", locked ? 1 : 0);
-        cmd.Parameters.AddWithValue("$started_at", lockStartedAt.ToString("o"));
-        cmd.Parameters.AddWithValue("$expires_at", lockExpiresAt.ToString("o"));
-        cmd.Parameters.AddWithValue("$requested_at", (object?)unlockRequestedAt?.ToString("o") ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("$stage", stage);
-        cmd.Parameters.AddWithValue("$failed", failedAttempts);
-        cmd.Parameters.AddWithValue("$updated_at", now.ToString("o"));
-        cmd.Parameters.AddWithValue("$hmac", hmac);
+        AddParameter(cmd, "$locked", locked ? 1 : 0);
+        AddParameter(cmd, "$started_at", lockStartedAt.ToString("o"));
+        AddParameter(cmd, "$expires_at", lockExpiresAt.ToString("o"));
+        AddParameter(cmd, "$requested_at", (object?)unlockRequestedAt?.ToString("o") ?? DBNull.Value);
+        AddParameter(cmd, "$stage", stage);
+        AddParameter(cmd, "$failed", failedAttempts);
+        AddParameter(cmd, "$updated_at", now.ToString("o"));
+        AddParameter(cmd, "$hmac", hmac);
 
         await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
@@ -268,5 +302,13 @@ public class CommitLockEngine : ICommitLockEngine
         }
 
         return lockExpiresAt;
+    }
+
+    private static void AddParameter(System.Data.Common.DbCommand command, string name, object value)
+    {
+        var param = command.CreateParameter();
+        param.ParameterName = name;
+        param.Value = value;
+        command.Parameters.Add(param);
     }
 }

@@ -2,7 +2,7 @@ import { HandshakePayload, HandshakeResponse, EvaluationPayload, EvaluationRespo
 
 const COMPONENT_ID = 'aegis-extension-chrome';
 const PRE_SHARED_SECRET = 'aegis-extension-secret-dev';
-const API_BASE_URL = 'https://127.0.0.1:9443';
+const API_BASE_URL = 'http://127.0.0.1:9443';
 
 console.log('[Aegis Extension] Background Service Worker initializing...');
 
@@ -131,7 +131,7 @@ async function evaluateUrl(tabId: number, url: string, title?: string): Promise<
 
     const evalRes: EvaluationResponse = await res.json();
 
-    if (evalRes.decision === 'Block') {
+    if (evalRes.decision === 'Block' || (evalRes.decision as any) === 1 || evalRes.action === 'Block') {
       console.warn('[Aegis Extension] BLOCK DECISION FOR TAB:', tabId, url);
       const blockPageUrl = chrome.runtime.getURL(`block.html?url=${encodeURIComponent(url)}&reason=${encodeURIComponent(evalRes.reason)}`);
       chrome.tabs.update(tabId, { url: blockPageUrl });

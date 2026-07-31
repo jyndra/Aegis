@@ -8,4 +8,5 @@ public class LockOptions
     public int UnlockCooldownMinutes { get; set; } = 60;
     public int UnlockStages { get; set; } = 3;
     public int MaxUnlockAttemptsPerDay { get; set; } = 3;
+    public bool BypassLockForTesting { get; set; } = false;
 }

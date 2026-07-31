@@ -170,6 +170,7 @@ The solution includes 12 test suites across `tests/`:
 - `UninstallerServiceTests.cs`: Commitment lock gating enforcement (verifying complete rejection of uninstallation when 25-day lock is active) and staged clean reverse removal when unlocked.
 - `RecoveryTests.cs` **(M10)**: End-to-end recovery scenarios — policy self-healing, corruption overwrite, custom rule preservation on upgrade, commitment lock uninstallation rejection (zero files deleted), and clean reverse flow.
 - `FailureModeTests.cs` **(M10)**: Hardness properties — `RuleEngine` fail-closed on exception (returns `Block` per RECOVERY.md Principle 1), allow-on-timeout (unevaluated content), null request guard, commitment lock rate-limit contract, and `DnsFilter` upstream-unreachable graceful degradation.
+- `CustomPolicyTests.cs`: Verifies custom website blocklist additions, custom keyword rules, custom regex syntax validation, One-Way Protection Ratchet (locked addition, post-cooldown deletion rejection), test mode bypass, and 10-step uninstallation safety challenge.
 - `ConfigValidatorTests.cs`: Service configuration rules.
 - `DependencyInjectionTests.cs`: Container resolution for `AddAegisInfrastructure()` registered services.
 

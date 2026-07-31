@@ -1,3 +1,5 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Aegis.Watchdog;
 
 var builder = Host.CreateApplicationBuilder(args);

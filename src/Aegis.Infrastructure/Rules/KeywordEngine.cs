@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Web;
@@ -27,13 +28,13 @@ public class KeywordEngine : IKeywordEngine
     {
         var defaultRules = new List<KeywordRule>
         {
-            new("porn", 50, KeywordMatchType.WordBoundary),
-            new("xxx", 50, KeywordMatchType.WordBoundary),
-            new("hentai", 45, KeywordMatchType.WordBoundary),
-            new("erotic", 30, KeywordMatchType.WordBoundary),
-            new("nsfw", 35, KeywordMatchType.WordBoundary),
-            new("sex video", 60, KeywordMatchType.Contains),
-            new("watch porn", 70, KeywordMatchType.Contains)
+            new("porn", 85, KeywordMatchType.WordBoundary),
+            new("xxx", 85, KeywordMatchType.WordBoundary),
+            new("hentai", 80, KeywordMatchType.WordBoundary),
+            new("erotic", 50, KeywordMatchType.WordBoundary),
+            new("nsfw", 50, KeywordMatchType.WordBoundary),
+            new("sex video", 90, KeywordMatchType.Contains),
+            new("watch porn", 100, KeywordMatchType.Contains)
         };
 
         _rules = defaultRules;
@@ -85,12 +86,31 @@ public class KeywordEngine : IKeywordEngine
             try
             {
                 string json = await File.ReadAllTextAsync(fullPath, cancellationToken);
-                var pack = JsonSerializer.Deserialize<KeywordPack>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                options.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+                var pack = JsonSerializer.Deserialize<KeywordPack>(json, options);
 
                 if (pack?.Rules != null && pack.Rules.Count > 0)
                 {
-                    _rules = pack.Rules; // Thread-safe atomic pointer swap
-                    _logger.LogInformation("Loaded {Count} keyword rules from pack '{Name}' v{Version} at {Path}",
+                    var merged = new List<KeywordRule>(_rules);
+                    foreach (var loadedRule in pack.Rules)
+                    {
+                        var existing = merged.FirstOrDefault(r => string.Equals(r.Keyword, loadedRule.Keyword, StringComparison.OrdinalIgnoreCase));
+                        if (existing != null)
+                        {
+                            if (loadedRule.Weight > existing.Weight)
+                            {
+                                merged.Remove(existing);
+                                merged.Add(loadedRule);
+                            }
+                        }
+                        else
+                        {
+                            merged.Add(loadedRule);
+                        }
+                    }
+                    _rules = merged; // Thread-safe atomic pointer swap
+                    _logger.LogInformation("Loaded and merged {Count} keyword rules from pack '{Name}' v{Version} at {Path}",
                         _rules.Count, pack.Name, pack.Version, fullPath);
                 }
             }

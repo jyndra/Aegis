@@ -169,7 +169,7 @@ public class RecoveryTests : IDisposable
         string sentinel = Path.Combine(policyDir, "keywords-default.json");
         await File.WriteAllTextAsync(sentinel, "{\"to_remove\": true}");
 
-        var result = await uninstaller.UninstallAsync(_testRoot, forceConfirm: true);
+        var result = await uninstaller.UninstallAsync(_testRoot, forceConfirm: true, confirmationStep: 10);
 
         result.Success.Should().BeTrue();
         result.BlockedByCommitmentDevice.Should().BeFalse();

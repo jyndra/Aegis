@@ -3,57 +3,54 @@ using Aegis.Service;
 using Aegis.Service.Api;
 using Serilog;
 
-// Configure Serilog first so even startup failures are captured
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .CreateBootstrapLogger();
+var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseUrls("http://127.0.0.1:9443", "http://127.0.0.1:5000");
 
-try
+// Configure Serilog from appsettings.json
+builder.Host.UseSerilog((ctx, services, config) => config
+    .ReadFrom.Configuration(ctx.Configuration)
+    .ReadFrom.Services(services)
+    .Enrich.FromLogContext()
+    .WriteTo.Console());
+
+if (Microsoft.Extensions.Hosting.WindowsServices.WindowsServiceHelpers.IsWindowsService())
 {
-    var builder = WebApplication.CreateBuilder(args);
-
-    // Configure Serilog from appsettings.json (overrides bootstrap logger)
-    builder.Host.UseSerilog((ctx, services, config) => config
-        .ReadFrom.Configuration(ctx.Configuration)
-        .ReadFrom.Services(services)
-        .Enrich.FromLogContext()
-        .WriteTo.Console()
-        .WriteTo.File(
-            path: Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-                               "Aegis", "logs", "aegis-.log"),
-            rollingInterval: RollingInterval.Day,
-            retainedFileCountLimit: 30));
-
     builder.Host.UseWindowsService();
-
-    // Add Infrastructure dependencies (configuration binding is inside AddAegisInfrastructure)
-    builder.Services.AddAegisInfrastructure(builder.Configuration);
-
-    // Register background loops
-    builder.Services.AddHostedService<AegisBackgroundService>();
-
-    var app = builder.Build();
-
-    // Map API endpoints
-    app.MapHealthEndpoints();
-    app.MapPolicyEndpoints();
-    app.MapHandshakeEndpoints();
-    app.MapEvaluateEndpoints();
-    app.MapUnlockEndpoints();
-    app.MapIntegrityEndpoints();
-    app.MapStatusEndpoints();
-    app.MapDeploymentEndpoints();
-
-    app.Run();
 }
-catch (Exception ex)
+
+// Add Infrastructure dependencies (configuration binding is inside AddAegisInfrastructure)
+builder.Services.AddAegisInfrastructure(builder.Configuration);
+
+// Configure Minimal APIs to serialize enums as strings and enable CORS
+builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
 {
-    // Global unhandled exception catch — ensures all startup failures are logged before process exits
-    Log.Fatal(ex, "Aegis Service terminated unexpectedly during startup.");
-}
-finally
+    options.SerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    options.SerializerOptions.PropertyNameCaseInsensitive = true;
+});
+
+builder.Services.AddCors(options =>
 {
-    Log.CloseAndFlush();
-}
+    options.AddDefaultPolicy(policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+});
+
+// Register background loops
+builder.Services.AddHostedService<AegisBackgroundService>();
+
+var app = builder.Build();
+
+app.UseCors();
+
+// Map API endpoints
+app.MapHealthEndpoints();
+app.MapPolicyEndpoints();
+app.MapHandshakeEndpoints();
+app.MapEvaluateEndpoints();
+app.MapUnlockEndpoints();
+app.MapIntegrityEndpoints();
+app.MapStatusEndpoints();
+app.MapDeploymentEndpoints();
+app.MapDashboardEndpoints();
+
+app.Run();
 
 public partial class Program { }

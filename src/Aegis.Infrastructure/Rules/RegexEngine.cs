@@ -45,9 +45,10 @@ public class RegexEngine : IRegexEngine
     {
         var defaultPacks = new List<RegexRule>
         {
-            new(@"\b(porn|porno|xxx|xnxx|xvideos|redtube|youporn|chaturbate)\b", 80, "ExplicitDomain", "Known explicit domain heuristics"),
-            new(@"\b(hentai|erotic|nsfw|sex|camgirl|stripclub|playboy)\b", 45, "AdultCategory", "Adult category keywords"),
-            new(@"\b(free-sex-videos|watch-porn-online|hd-porn-clips)\b", 75, "HighRiskUrl", "High-risk URL patterns")
+            new(@"\b(porn|porno|xxx|xnxx|xvideos|redtube|youporn|chaturbate)\b", 85, "ExplicitDomain", "Known explicit domain heuristics"),
+            new(@"\b(hentai|erotic|nsfw|sex|camgirl|stripclub|playboy)\b", 75, "AdultCategory", "Adult category keywords"),
+            new(@"\b(free-sex-videos|watch-porn-online|hd-porn-clips)\b", 95, "HighRiskUrl", "High-risk URL patterns"),
+            new(@"(\.xxx|\.adult|pornhub|xvideos|xhamster|eporner)", 100, "ExplicitDomain", "Explicit adult hosting domain")
         };
 
         var list = new List<CompiledRegexRule>();
@@ -127,14 +128,17 @@ public class RegexEngine : IRegexEngine
 
                 if (pack?.Rules != null && pack.Rules.Count > 0)
                 {
-                    var newRules = new List<CompiledRegexRule>();
+                    var merged = new List<CompiledRegexRule>(_compiledRules);
                     foreach (var rule in pack.Rules)
                     {
-                        newRules.Add(new CompiledRegexRule(rule.Pattern, rule.Weight, rule.Category, rule.Description, DefaultMatchTimeout));
+                        if (!merged.Any(r => string.Equals(r.Regex.ToString(), rule.Pattern, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            merged.Add(new CompiledRegexRule(rule.Pattern, rule.Weight, rule.Category, rule.Description, DefaultMatchTimeout));
+                        }
                     }
 
-                    _compiledRules = newRules; // Thread-safe atomic pointer swap
-                    _logger.LogInformation("Loaded {Count} regex rules from pack '{Name}' v{Version} at {Path}",
+                    _compiledRules = merged; // Thread-safe atomic pointer swap
+                    _logger.LogInformation("Loaded and merged {Count} regex rules from pack '{Name}' v{Version} at {Path}",
                         _compiledRules.Count, pack.Name, pack.Version, fullPath);
                 }
             }

@@ -26,7 +26,7 @@ public class ConfigurationOptionsTests
 
         var opts = new DnsOptions();
         opts.Enabled.Should().BeTrue();
-        opts.ListenPort.Should().Be(53);
+        opts.ListenPort.Should().Be(5354);
         opts.UpstreamServers.Should().Contain("1.1.1.1");
     }
 
@@ -36,7 +36,7 @@ public class ConfigurationOptionsTests
         FilteringOptions.SectionName.Should().Be("filtering");
 
         var opts = new FilteringOptions();
-        opts.RuleEvaluationTimeoutMs.Should().Be(5);
+        opts.RuleEvaluationTimeoutMs.Should().Be(1000);
         opts.ScoreThreshold.Should().Be(70);
     }
 
@@ -58,6 +58,6 @@ public class ConfigurationOptionsTests
 
         var opts = new ProxyOptions();
         opts.Enabled.Should().BeFalse();
-        opts.ListenPort.Should().Be(8080);
+        opts.ListenPort.Should().Be(8081);
     }
 }

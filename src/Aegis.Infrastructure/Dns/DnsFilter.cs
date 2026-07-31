@@ -22,8 +22,8 @@ public class DnsFilter : IDnsFilter
     private UdpClient? _udpListener;
     private CancellationTokenSource? _cts;
     private Task? _listenerTask;
-    // Hardening M10: volatile ensures Volatile.Write in ReloadBlocklistAsync is visible to concurrent IsDomainBlockedAsync readers
-    private volatile HashSet<string> _inMemoryBlocklist = new(StringComparer.OrdinalIgnoreCase);
+    // Hardening M10: Volatile.Write in ReloadBlocklistAsync ensures atomic reference swap visible to concurrent readers
+    private HashSet<string> _inMemoryBlocklist = new(StringComparer.OrdinalIgnoreCase);
 
     public DnsFilter(
         IBlocklistRepository blocklistRepo,

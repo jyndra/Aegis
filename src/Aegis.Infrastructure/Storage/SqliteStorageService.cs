@@ -23,15 +23,26 @@ public class SqliteStorageService : IStorageService
         }
         else
         {
-            var baseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Aegis");
-            _dbPath = Path.Combine(baseDir, "aegis.db");
+            var workspaceData = Path.Combine(Directory.GetCurrentDirectory(), "data");
+            Directory.CreateDirectory(workspaceData);
+            var candidate = Path.Combine(workspaceData, "aegis.db");
+            if (File.Exists(candidate) || Directory.Exists(workspaceData))
+            {
+                _dbPath = candidate;
+            }
+            else
+            {
+                var baseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Aegis");
+                _dbPath = Path.Combine(baseDir, "aegis.db");
+            }
         }
 
         _connectionString = new SqliteConnectionStringBuilder
         {
             DataSource = _dbPath,
             Mode = SqliteOpenMode.ReadWriteCreate,
-            Cache = SqliteCacheMode.Shared
+            Cache = SqliteCacheMode.Shared,
+            DefaultTimeout = 15
         }.ToString();
 
         _migrator.ConfigureConnectionFactory(CreateConnection);

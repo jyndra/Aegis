@@ -27,9 +27,9 @@ public class IntegrityEngineTests : IDisposable
 
         _securityService = new SecurityService(NullLogger<SecurityService>.Instance);
         _healthRepo = new ModuleHealthRepository(_storageService, NullLogger<ModuleHealthRepository>.Instance);
-        _healthReporter = new HealthReporter(_healthRepo, NullLogger<HealthReporter>.Instance);
-        _eventRepo = new EventRepository(_storageService, NullLogger<EventRepository>.Instance);
         var timeProvider = new SystemTimeProvider();
+        _healthReporter = new HealthReporter(_healthRepo, timeProvider, NullLogger<HealthReporter>.Instance);
+        _eventRepo = new EventRepository(_storageService, NullLogger<EventRepository>.Instance);
 
         _integrityEngine = new IntegrityEngine(_storageService, _securityService, _healthReporter, _eventRepo, timeProvider, NullLogger<IntegrityEngine>.Instance);
     }

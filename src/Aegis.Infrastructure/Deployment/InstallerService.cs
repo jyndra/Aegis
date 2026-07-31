@@ -101,19 +101,32 @@ public class InstallerService : IInstallerService
 
         string defaultKeywordsJson = JsonSerializer.Serialize(new
         {
+            name = "DefaultKeywords",
             version = "1.0.0",
-            description = "Default adult explicit search and title keyword triggers",
-            keywords = new[] { "porn", "xxx", "nudes", "hentai", "camgirl", "onlyfans", "erotic" }
+            rules = new[]
+            {
+                new { keyword = "porn", weight = 85, matchType = "WordBoundary" },
+                new { keyword = "xxx", weight = 85, matchType = "WordBoundary" },
+                new { keyword = "nudes", weight = 75, matchType = "WordBoundary" },
+                new { keyword = "hentai", weight = 80, matchType = "WordBoundary" },
+                new { keyword = "camgirl", weight = 75, matchType = "WordBoundary" },
+                new { keyword = "onlyfans", weight = 60, matchType = "WordBoundary" },
+                new { keyword = "erotic", weight = 50, matchType = "WordBoundary" },
+                new { keyword = "sex video", weight = 90, matchType = "Contains" },
+                new { keyword = "watch porn", weight = 100, matchType = "Contains" }
+            }
         }, new JsonSerializerOptions { WriteIndented = true });
 
         string defaultRegexJson = JsonSerializer.Serialize(new
         {
+            name = "DefaultRegex",
             version = "1.0.0",
-            description = "Default adult URL parameter and hostname heuristic regex rules",
             rules = new[]
             {
-                new { pattern = @"\b(porn|xxx|nude|sex)\b", score = 60, description = "Explicit vocabulary token" },
-                new { pattern = @"(\.xxx|\.adult|pornhub|xvideos|xhamster)", score = 100, description = "Explicit adult hosting domain" }
+                new { pattern = @"\b(porn|porno|xxx|xnxx|xvideos|redtube|youporn|chaturbate)\b", weight = 85, category = "ExplicitDomain", description = "Known explicit domain heuristics" },
+                new { pattern = @"\b(hentai|erotic|nsfw|sex|camgirl|stripclub|playboy)\b", weight = 75, category = "AdultCategory", description = "Adult category keywords" },
+                new { pattern = @"\b(free-sex-videos|watch-porn-online|hd-porn-clips)\b", weight = 95, category = "HighRiskUrl", description = "High-risk URL patterns" },
+                new { pattern = @"(\.xxx|\.adult|pornhub|xvideos|xhamster|eporner)", weight = 100, category = "ExplicitDomain", description = "Explicit adult hosting domain" }
             }
         }, new JsonSerializerOptions { WriteIndented = true });
 

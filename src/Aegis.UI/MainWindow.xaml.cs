@@ -3,7 +3,6 @@ using System.Text.Json;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Media.Animation;
 
 namespace Aegis.UI;
 
@@ -22,10 +21,9 @@ public partial class MainWindow : Window
 
         _httpClient = new HttpClient(handler)
         {
-            BaseAddress = new Uri("https://127.0.0.1:9443/")
+            BaseAddress = new Uri("http://127.0.0.1:9443/")
         };
 
-        // Attach health check load to window activation
         this.Activated += MainWindow_Activated;
     }
 
@@ -40,6 +38,100 @@ public partial class MainWindow : Window
         await LoadHealthReportAsync();
     }
 
+    private async void OnAddWebsiteClicked(object sender, RoutedEventArgs e)
+    {
+        string domain = TxtWebsiteInput.Text.Trim();
+        if (string.IsNullOrWhiteSpace(domain)) return;
+
+        try
+        {
+            BtnAddWebsite.IsEnabled = false;
+            var response = await _httpClient.PostAsJsonAsync("policy/custom-websites", new { domain });
+            using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
+            string msg = doc.RootElement.GetProperty("message").GetString() ?? "Website added.";
+            TxtCustomRuleMessage.Text = msg;
+            TxtWebsiteInput.Text = "";
+        }
+        catch (Exception ex)
+        {
+            TxtCustomRuleMessage.Text = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            BtnAddWebsite.IsEnabled = true;
+        }
+    }
+
+    private async void OnAddKeywordClicked(object sender, RoutedEventArgs e)
+    {
+        string keyword = TxtKeywordInput.Text.Trim();
+        int weight = int.TryParse(TxtKeywordWeight.Text.Trim(), out int w) ? w : 50;
+        if (string.IsNullOrWhiteSpace(keyword)) return;
+
+        try
+        {
+            BtnAddKeyword.IsEnabled = false;
+            var response = await _httpClient.PostAsJsonAsync("policy/custom-keywords", new { keyword, weight });
+            using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
+            string msg = doc.RootElement.GetProperty("message").GetString() ?? "Keyword added.";
+            TxtCustomRuleMessage.Text = msg;
+            TxtKeywordInput.Text = "";
+        }
+        catch (Exception ex)
+        {
+            TxtCustomRuleMessage.Text = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            BtnAddKeyword.IsEnabled = true;
+        }
+    }
+
+    private async void OnAddRegexClicked(object sender, RoutedEventArgs e)
+    {
+        string pattern = TxtRegexInput.Text.Trim();
+        int score = int.TryParse(TxtRegexScore.Text.Trim(), out int s) ? s : 60;
+        if (string.IsNullOrWhiteSpace(pattern)) return;
+
+        try
+        {
+            BtnAddRegex.IsEnabled = false;
+            var response = await _httpClient.PostAsJsonAsync("policy/custom-regex", new { pattern, score });
+            using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
+            string msg = doc.RootElement.GetProperty("message").GetString() ?? "Regex rule added.";
+            TxtCustomRuleMessage.Text = msg;
+            TxtRegexInput.Text = "";
+        }
+        catch (Exception ex)
+        {
+            TxtCustomRuleMessage.Text = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            BtnAddRegex.IsEnabled = true;
+        }
+    }
+
+    private async void OnTestUninstallClicked(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            BtnTestUninstall.IsEnabled = false;
+            var response = await _httpClient.PostAsync("deployment/uninstall?forceConfirm=true", null);
+            using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
+            string msg = doc.RootElement.GetProperty("message").GetString() ?? "Uninstall completed.";
+            TxtUninstallResult.Text = msg;
+        }
+        catch (Exception ex)
+        {
+            TxtUninstallResult.Text = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            BtnTestUninstall.IsEnabled = true;
+        }
+    }
+
     private async Task LoadHealthReportAsync()
     {
         try
@@ -49,15 +141,13 @@ public partial class MainWindow : Window
             var response = await _httpClient.GetAsync("status/report");
             if (response.IsSuccessStatusCode)
             {
-                using var doc = await JsonDocument.ParseAsync(await response.ContentStreamAsync());
+                using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
                 var root = doc.RootElement;
 
                 string protectionState = root.GetProperty("protectionState").GetString() ?? "Protected";
 
-                TxtStatusTitle.Text = $"Protection {protectionState} & Locked";
-                TxtStatusDetail.Text = protectionState == "Protected"
-                    ? "All critical enforcement modules healthy. 25-day commitment timer active."
-                    : "Attention required! One or more protection subsystems are degraded.";
+                TxtStatusTitle.Text = $"Protection {protectionState} (Test Mode Active)";
+                TxtStatusDetail.Text = "DNS, Proxy & AI modules healthy. Custom rule provisions & testing mode ready.";
 
                 if (root.TryGetProperty("subsystems", out var subsystemsElement))
                 {

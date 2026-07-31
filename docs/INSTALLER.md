@@ -37,12 +37,16 @@ The uninstaller should:
 
 ## 4. Normal uninstall flow
 
-- user requests uninstall,
-- system checks lock state,
-- if locked, refuse and explain,
-- if unlocked, begin staged confirmations,
-- after completion, stop enforcement modules,
-- remove files and metadata.
+- **Test Mode (`bypassLockForTesting: true`)**:
+  - User requests uninstall.
+  - System bypasses commitment lock and 10-step challenge.
+  - Clean reverse teardown executes **instantly with 0 friction**.
+
+- **Production Mode (`bypassLockForTesting: false`)**:
+  - User requests uninstall.
+  - System checks lock state. If locked, refuse and return HTTP 403.
+  - If unlocked, enforce **10-Step Challenge with 5-Minute Mandatory Cooldown Per Step** (50 minutes total cumulative delay).
+  - After 10 steps confirmed, stop enforcement modules and remove files cleanly.
 
 ## 5. Rollback
 

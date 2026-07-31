@@ -31,6 +31,14 @@ public class DatabaseMigrator : IDatabaseMigrator
         await MigrateAsync(connection, cancellationToken);
     }
 
+    public async Task MigrateAsync(System.Data.Common.DbConnection connection, CancellationToken cancellationToken = default)
+    {
+        if (connection is SqliteConnection sqliteConn)
+        {
+            await MigrateAsync(sqliteConn, cancellationToken);
+        }
+    }
+
     public async Task MigrateAsync(SqliteConnection connection, CancellationToken cancellationToken = default)
     {
         int currentVersion = await GetCurrentVersionAsync(connection, cancellationToken);
@@ -42,6 +50,8 @@ public class DatabaseMigrator : IDatabaseMigrator
             await ApplyV1SchemaAsync(connection, cancellationToken);
             _logger.LogInformation("Database migration v1 applied successfully.");
         }
+
+        await EnsureLockStateColumnsAsync(connection, cancellationToken);
     }
 
     public async Task<int> GetCurrentVersionAsync(CancellationToken cancellationToken = default)
@@ -54,6 +64,15 @@ public class DatabaseMigrator : IDatabaseMigrator
         using var connection = _connectionFactory();
         await connection.OpenAsync(cancellationToken);
         return await GetCurrentVersionAsync(connection, cancellationToken);
+    }
+
+    public async Task<int> GetCurrentVersionAsync(System.Data.Common.DbConnection connection, CancellationToken cancellationToken = default)
+    {
+        if (connection is SqliteConnection sqliteConn)
+        {
+            return await GetCurrentVersionAsync(sqliteConn, cancellationToken);
+        }
+        return 0;
     }
 
     public async Task<int> GetCurrentVersionAsync(SqliteConnection connection, CancellationToken cancellationToken = default)
@@ -97,17 +116,14 @@ public class DatabaseMigrator : IDatabaseMigrator
 
             CREATE TABLE IF NOT EXISTS lock_state (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                is_locked INTEGER NOT NULL DEFAULT 1,
-                activated_at TEXT NOT NULL,
-                expires_at TEXT NOT NULL,
-                activated_monotonic_ticks INTEGER NOT NULL,
-                elapsed_monotonic_ticks INTEGER NOT NULL,
-                last_tick_update_at TEXT NOT NULL,
+                locked INTEGER NOT NULL DEFAULT 1,
+                lock_started_at TEXT NOT NULL,
+                lock_expires_at TEXT NOT NULL,
                 unlock_requested_at TEXT,
-                unlock_stage INTEGER NOT NULL DEFAULT 0,
-                unlock_state TEXT NOT NULL DEFAULT 'Locked',
-                last_change_at TEXT NOT NULL,
-                row_hmac TEXT NOT NULL
+                stage INTEGER NOT NULL DEFAULT 0,
+                failed_attempts INTEGER NOT NULL DEFAULT 0,
+                updated_at TEXT NOT NULL,
+                hmac_signature TEXT
             );
 
             CREATE TABLE IF NOT EXISTS events (
@@ -139,12 +155,10 @@ public class DatabaseMigrator : IDatabaseMigrator
 
             CREATE TABLE IF NOT EXISTS integrity_checks (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                timestamp TEXT NOT NULL,
-                component TEXT NOT NULL,
-                passed INTEGER NOT NULL,
+                check_type TEXT NOT NULL,
+                status TEXT NOT NULL,
                 details_json TEXT,
-                recovered INTEGER NOT NULL DEFAULT 0,
-                recovery_action TEXT
+                checked_at TEXT NOT NULL
             );
 
             CREATE TABLE IF NOT EXISTS module_health (
@@ -181,5 +195,75 @@ public class DatabaseMigrator : IDatabaseMigrator
         await cmd.ExecuteNonQueryAsync(cancellationToken);
 
         transaction.Commit();
+    }
+
+    private static async Task EnsureLockStateColumnsAsync(SqliteConnection connection, CancellationToken cancellationToken)
+    {
+        var checkCmd = connection.CreateCommand();
+        checkCmd.CommandText = "PRAGMA table_info(lock_state);";
+
+        bool hasLockedCol = false;
+        using (var colReader = await checkCmd.ExecuteReaderAsync(cancellationToken))
+        {
+            while (await colReader.ReadAsync(cancellationToken))
+            {
+                string colName = colReader.GetString(1);
+                if (string.Equals(colName, "locked", StringComparison.OrdinalIgnoreCase))
+                {
+                    hasLockedCol = true;
+                    break;
+                }
+            }
+        }
+
+        if (!hasLockedCol)
+        {
+            var dropCmd = connection.CreateCommand();
+            dropCmd.CommandText = @"
+                DROP TABLE IF EXISTS lock_state;
+                CREATE TABLE lock_state (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    locked INTEGER NOT NULL DEFAULT 1,
+                    lock_started_at TEXT NOT NULL,
+                    lock_expires_at TEXT NOT NULL,
+                    unlock_requested_at TEXT,
+                    stage INTEGER NOT NULL DEFAULT 0,
+                    failed_attempts INTEGER NOT NULL DEFAULT 0,
+                    updated_at TEXT NOT NULL,
+                    hmac_signature TEXT
+                );";
+            await dropCmd.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        var icCheckCmd = connection.CreateCommand();
+        icCheckCmd.CommandText = "PRAGMA table_info(integrity_checks);";
+        bool hasCheckTypeCol = false;
+        using (var icReader = await icCheckCmd.ExecuteReaderAsync(cancellationToken))
+        {
+            while (await icReader.ReadAsync(cancellationToken))
+            {
+                string colName = icReader.GetString(1);
+                if (string.Equals(colName, "check_type", StringComparison.OrdinalIgnoreCase))
+                {
+                    hasCheckTypeCol = true;
+                    break;
+                }
+            }
+        }
+
+        if (!hasCheckTypeCol)
+        {
+            var dropIcCmd = connection.CreateCommand();
+            dropIcCmd.CommandText = @"
+                DROP TABLE IF EXISTS integrity_checks;
+                CREATE TABLE integrity_checks (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    check_type TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    details_json TEXT,
+                    checked_at TEXT NOT NULL
+                );";
+            await dropIcCmd.ExecuteNonQueryAsync(cancellationToken);
+        }
     }
 }

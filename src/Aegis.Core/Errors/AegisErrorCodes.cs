@@ -10,7 +10,9 @@ public static class AegisErrorCodes
     public const string ServiceUnreachable = "AEGIS-1002";
     public const string WatchdogRestartFailed = "AEGIS-1003";
     public const string HostBindFailed = "AEGIS-1004";
+    public const string PortInUse = "AEGIS-1004";
     public const string DegradedModeEntered = "AEGIS-1005";
+    public const string DegradedModeActivated = "AEGIS-1005";
     public const string DegradedModeExited = "AEGIS-1006";
     public const string ShutdownRequested = "AEGIS-1007";
 
@@ -53,6 +55,7 @@ public static class AegisErrorCodes
 
     // Integrity (7xxx)
     public const string IntegrityCheckFailed = "AEGIS-7001";
+    public const string StateIntegrityViolated = "AEGIS-7001";
     public const string SelfHealingAttempted = "AEGIS-7002";
     public const string SelfHealingFailed = "AEGIS-7003";
     public const string TamperDetected = "AEGIS-7004";

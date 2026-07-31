@@ -64,6 +64,15 @@ Policy packs must be:
 - validated on load,
 - rejected if malformed.
 
+## 6.1 One-Way Protection Ratchet
+- **Rule Expansion**: Adding custom websites, keywords, and regex patterns is **ALWAYS ALLOWED**, even while the 25-day commitment lock is active.
+- **Rule Reduction**: Deleting or disabling rules is **STRICTLY BLOCKED** (HTTP 403) while the 25-day commitment lock is live. Rules can only be edited or removed after the 25-day countdown expires and the app enters `Unlocked` state.
+
+## 6.2 10-Step 5-Minute Cooldown Uninstallation Challenge
+- Uninstallation requires completing 10 sequential confirmation steps (`step=1..10`).
+- A **5-minute mandatory cooling-off period** is enforced between each step (50 minutes total cumulative delay), eliminating impulse uninstallation.
+- **Test Mode Bypass**: When `bypassLockForTesting: true` is configured in `appsettings.json`, uninstallation executes with zero friction (1-click instant teardown) for easy development and testing.
+
 ## 7. Tamper response
 
 When tampering is detected:

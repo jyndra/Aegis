@@ -99,6 +99,30 @@ Attempts self-healing for a specific component.
 ### GET /status/report
 Returns a detailed protection report for the UI.
 
+### Custom Policy & Rule Provisions
+
+#### GET /policy/custom-rules
+Returns custom rules overview: list of custom blocked websites, keywords, regex rules, commitment lock status, and `testModeActive` flag.
+
+#### POST /policy/custom-websites
+Body: `{ "domain": "example.com" }`. Adds custom domain to SQLite `domain_blocklist` and triggers hot-reloading in `DnsFilter`. Always allowed even during 25-day lock.
+
+#### POST /policy/custom-keywords
+Body: `{ "keyword": "gambling", "weight": 50 }`. Adds custom keyword rule to SQLite `blocked_rules` and triggers hot-reloading in `KeywordEngine`. Always allowed even during 25-day lock.
+
+#### POST /policy/custom-regex
+Body: `{ "pattern": "\\b(poker|bet)\\b", "score": 60, "description": "Custom regex" }`. Validates regex syntax and adds to `blocked_rules`, triggering `RegexEngine` hot-reload. Always allowed even during 25-day lock.
+
+#### DELETE /policy/custom-rules/{id}
+Deletes custom rule. **Enforces One-Way Protection Ratchet**: blocked (HTTP 403) while 25-day commitment lock is active in production mode. Permitted in test mode (`bypassLockForTesting: true`).
+
+### Deployment & Uninstallation Endpoints
+
+#### POST /deployment/uninstall
+Accepts `forceConfirm: bool` and `step: int`.
+- **Test Mode (`bypassLockForTesting: true`)**: Executes instant 1-click zero-friction uninstallation.
+- **Production Mode (`bypassLockForTesting: false`)**: Blocked if 25-day commitment lock is live. If unlocked, enforces **10-Step Interactive Challenge with 5-Minute Cooldown Per Step** (requiring `step=1..10` with 5 minutes wait between each step; 50 minutes total cumulative delay).
+
 ## 5. Payload model
 
 Inputs may include:

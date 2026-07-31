@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="Aegis Control Center">
 
-    <Grid Padding="30" RowSpacing="20">
+    <Grid Padding="25" RowSpacing="15">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -12,89 +12,154 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <StackPanel Grid.Row="0" Spacing="5">
-            <TextBlock Text="Aegis Control Center" FontSize="26" FontWeight="Bold" />
-            <TextBlock Text="Local-First Content Filtering &amp; Commitment Device" FontSize="14" Foreground="Gray" />
+        <StackPanel Grid.Row="0" Spacing="4">
+            <TextBlock Text="Aegis Control Center" FontSize="24" FontWeight="Bold" />
+            <TextBlock Text="Local Content Filtering &amp; Custom Policy Manager" FontSize="13" Foreground="Gray" />
         </StackPanel>
 
-        <!-- Protection Banner -->
-        <Border Grid.Row="1" Background="#1E293B" CornerRadius="8" Padding="20">
-            <Grid ColumnSpacing="20">
+        <!-- Status Banner -->
+        <Border Grid.Row="1" Background="#1E293B" CornerRadius="8" Padding="15">
+            <Grid ColumnSpacing="15">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0" Spacing="5">
-                    <TextBlock x:Name="TxtStatusTitle" Text="Protection Active &amp; Locked" FontSize="18" FontWeight="SemiBold" Foreground="#38BDF8"/>
-                    <TextBlock x:Name="TxtStatusDetail" Text="All critical enforcement modules healthy. 25-day commitment timer active." FontSize="13" Foreground="#94A3B8"/>
+                <StackPanel Grid.Column="0" Spacing="4">
+                    <TextBlock x:Name="TxtStatusTitle" Text="Protection Active (Test Mode Enabled)" FontSize="16" FontWeight="SemiBold" Foreground="#38BDF8"/>
+                    <TextBlock x:Name="TxtStatusDetail" Text="DNS, HTTP Proxy &amp; AI engines filtering. Zero-friction testing active." FontSize="12" Foreground="#94A3B8"/>
                 </StackPanel>
 
                 <Button Grid.Column="1" x:Name="BtnRefresh" Content="Refresh Health" Click="OnRefreshClicked" VerticalAlignment="Center"/>
             </Grid>
         </Border>
 
-        <!-- Health Cards -->
-        <ScrollViewer Grid.Row="2">
-            <StackPanel Spacing="10">
-                <TextBlock Text="Subsystem Health Snapshot" FontSize="16" FontWeight="SemiBold" Margin="0,10,0,5"/>
+        <!-- Main Tab Control -->
+        <TabView Grid.Row="2" IsAddTabButtonVisible="False">
+            <!-- Tab 1: Subsystem Health -->
+            <TabViewItem Header="Subsystem Health" IsClosable="False">
+                <ScrollViewer Padding="10">
+                    <StackPanel Spacing="10">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="12">
+                            <Grid ColumnSpacing="15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Windows Service" FontWeight="Medium"/>
+                                    <TextBlock Text="API server and global state coordinator" FontSize="11" Foreground="Gray"/>
+                                </StackPanel>
+                                <TextBlock Grid.Column="1" x:Name="TxtServiceStatus" Text="Healthy" Foreground="#4ADE80" FontWeight="Bold" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
 
-                <Border Background="#0F172A" CornerRadius="6" Padding="15">
-                    <Grid ColumnSpacing="15">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="Windows Service" FontWeight="Medium"/>
-                            <TextBlock Text="Hosts API server and global state coordinator" FontSize="12" Foreground="Gray"/>
-                        </StackPanel>
-                        <TextBlock Grid.Column="1" x:Name="TxtServiceStatus" Text="Healthy" Foreground="#4ADE80" FontWeight="Bold" VerticalAlignment="Center"/>
-                    </Grid>
-                </Border>
+                        <Border Background="#0F172A" CornerRadius="6" Padding="12">
+                            <Grid ColumnSpacing="15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="SQLite Database" FontWeight="Medium"/>
+                                    <TextBlock Text="WAL mode persistence with row HMAC verification" FontSize="11" Foreground="Gray"/>
+                                </StackPanel>
+                                <TextBlock Grid.Column="1" x:Name="TxtDbStatus" Text="Healthy" Foreground="#4ADE80" FontWeight="Bold" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
 
-                <Border Background="#0F172A" CornerRadius="6" Padding="15">
-                    <Grid ColumnSpacing="15">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="SQLite Database" FontWeight="Medium"/>
-                            <TextBlock Text="Local persistence in WAL mode with row HMAC integrity" FontSize="12" Foreground="Gray"/>
-                        </StackPanel>
-                        <TextBlock Grid.Column="1" x:Name="TxtDbStatus" Text="Healthy" Foreground="#4ADE80" FontWeight="Bold" VerticalAlignment="Center"/>
-                    </Grid>
-                </Border>
+                        <Border Background="#0F172A" CornerRadius="6" Padding="12">
+                            <Grid ColumnSpacing="15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="DNS Proxy Filter" FontWeight="Medium"/>
+                                    <TextBlock Text="Async UDP 127.0.0.1:53 listener for domain blocklists" FontSize="11" Foreground="Gray"/>
+                                </StackPanel>
+                                <TextBlock Grid.Column="1" x:Name="TxtDnsStatus" Text="Healthy" Foreground="#4ADE80" FontWeight="Bold" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
 
-                <Border Background="#0F172A" CornerRadius="6" Padding="15">
-                    <Grid ColumnSpacing="15">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="DNS Proxy Filter" FontWeight="Medium"/>
-                            <TextBlock Text="Local UDP 127.0.0.1:53 listener for domain blocklists" FontSize="12" Foreground="Gray"/>
-                        </StackPanel>
-                        <TextBlock Grid.Column="1" x:Name="TxtDnsStatus" Text="Healthy" Foreground="#4ADE80" FontWeight="Bold" VerticalAlignment="Center"/>
-                    </Grid>
-                </Border>
+                        <Border Background="#0F172A" CornerRadius="6" Padding="12">
+                            <Grid ColumnSpacing="15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Browser Extension" FontWeight="Medium"/>
+                                    <TextBlock Text="MV3 Chromium agent for URL and DOM evaluation" FontSize="11" Foreground="Gray"/>
+                                </StackPanel>
+                                <TextBlock Grid.Column="1" x:Name="TxtExtensionStatus" Text="Healthy" Foreground="#4ADE80" FontWeight="Bold" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabViewItem>
 
-                <Border Background="#0F172A" CornerRadius="6" Padding="15">
-                    <Grid ColumnSpacing="15">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="Browser Extension" FontWeight="Medium"/>
-                            <TextBlock Text="MV3 Chromium agent for URL and DOM keyword evaluation" FontSize="12" Foreground="Gray"/>
+            <!-- Tab 2: Custom Rules -->
+            <TabViewItem Header="Custom Rules Manager" IsClosable="False">
+                <ScrollViewer Padding="15">
+                    <StackPanel Spacing="15">
+                        <!-- Add Website -->
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Add Custom Blocked Website" FontWeight="SemiBold"/>
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="TxtWebsiteInput" Grid.Column="0" PlaceholderText="e.g. gambling-example.com"/>
+                                <Button x:Name="BtnAddWebsite" Grid.Column="1" Content="Add Website" Click="OnAddWebsiteClicked"/>
+                            </Grid>
                         </StackPanel>
-                        <TextBlock Grid.Column="1" x:Name="TxtExtensionStatus" Text="Healthy" Foreground="#4ADE80" FontWeight="Bold" VerticalAlignment="Center"/>
-                    </Grid>
-                </Border>
-            </StackPanel>
-        </ScrollViewer>
+
+                        <!-- Add Keyword -->
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Add Custom Keyword Trigger" FontWeight="SemiBold"/>
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="TxtKeywordInput" Grid.Column="0" PlaceholderText="e.g. casino"/>
+                                <TextBox x:Name="TxtKeywordWeight" Grid.Column="1" Text="50" PlaceholderText="Weight"/>
+                                <Button x:Name="BtnAddKeyword" Grid.Column="2" Content="Add Keyword" Click="OnAddKeywordClicked"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Add Regex -->
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Add Custom Regex Pattern" FontWeight="SemiBold"/>
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="TxtRegexInput" Grid.Column="0" PlaceholderText="e.g. \b(poker|betting)\b"/>
+                                <TextBox x:Name="TxtRegexScore" Grid.Column="1" Text="60" PlaceholderText="Score"/>
+                                <Button x:Name="BtnAddRegex" Grid.Column="2" Content="Add Regex" Click="OnAddRegexClicked"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <TextBlock x:Name="TxtCustomRuleMessage" Text="" Foreground="#38BDF8" FontSize="12"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabViewItem>
+
+            <!-- Tab 3: Testing & Uninstaller -->
+            <TabViewItem Header="Testing &amp; Uninstaller" IsClosable="False">
+                <StackPanel Padding="20" Spacing="15">
+                    <TextBlock Text="Zero-Friction Test Mode Active" FontSize="16" FontWeight="SemiBold" Foreground="#F59E0B"/>
+                    <TextBlock Text="Uninstallation and custom rule modifications are un-restricted for testing. Content filtering remains 100% active." TextWrapping="Wrap" Foreground="Gray"/>
+                    <Button x:Name="BtnTestUninstall" Content="Uninstall App (Instant Teardown)" Click="OnTestUninstallClicked" Background="#991B1B"/>
+                    <TextBlock x:Name="TxtUninstallResult" Text="" FontSize="12"/>
+                </StackPanel>
+            </TabViewItem>
+        </TabView>
     </Grid>
 </Window>

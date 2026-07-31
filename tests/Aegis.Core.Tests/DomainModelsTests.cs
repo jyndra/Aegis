@@ -11,25 +11,19 @@ public class DomainModelsTests
     {
         var now = DateTimeOffset.UtcNow;
         var state1 = new LockState(
-            Id: 1,
-            IsLocked: true,
-            ActivatedAt: now,
-            ExpiresAt: now.AddDays(25),
-            ActivatedMonotonicTicks: 1000,
-            ElapsedMonotonicTicks: 500,
-            LastTickUpdateAt: now,
+            Locked: true,
+            LockStartedAt: now,
+            LockExpiresAt: now.AddDays(25),
             UnlockRequestedAt: null,
             UnlockStage: 0,
-            UnlockState: "Locked",
-            LastChangeAt: now,
-            RowHmac: "HMAC123"
+            FailedAttempts: 0,
+            UpdatedAt: now
         );
 
-        var state2 = state1 with { ElapsedMonotonicTicks = 500 };
+        var state2 = state1 with { FailedAttempts = 0 };
 
         state1.Should().Be(state2);
-        state1.IsLocked.Should().BeTrue();
-        state1.RowHmac.Should().Be("HMAC123");
+        state1.Locked.Should().BeTrue();
     }
 
     [Fact]

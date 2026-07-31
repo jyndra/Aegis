@@ -62,6 +62,7 @@
 - [x] Performance tuning (`ProxyServer` SemaphoreSlim(50) concurrency gate, `DnsFilter` volatile thread-safe blocklist swap, duplicate config binding eliminated).
 - [x] Recovery tests (`RecoveryTests.cs`: policy self-healing, corruption overwrite, custom rule preservation, commitment lock rejection, clean reverse flow).
 - [x] Failure mode tests (`FailureModeTests.cs`: fail-closed `RuleEngine` on exception, allow-on-timeout, DNS upstream graceful degradation, null guard, rate-limit contract).
+- [x] Custom policy provisions & zero-friction test mode (`CustomPolicyService`: custom website, keyword, regex provisions; One-Way Protection Ratchet; `bypassLockForTesting: true` zero-friction test mode; production 10-step 5-minute per-step cooldown challenge; `CustomPolicyTests.cs`).
 - [x] Comprehensive documentation (all `/docs` updated, `TECH_STACK.md` finalized, hardening notes in `MODULES.md`).
 
 ## Release criterion

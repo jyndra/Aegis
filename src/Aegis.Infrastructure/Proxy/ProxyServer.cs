@@ -199,7 +199,7 @@ public class ProxyServer : IProxyServer
                 Query: null,
                 Title: null,
                 Referrer: null,
-                UserAgent: "ProxyEngine",
+                Browser: "ProxyEngine",
                 Component: "Proxy",
                 Timestamp: _timeProvider.UtcNow
             );

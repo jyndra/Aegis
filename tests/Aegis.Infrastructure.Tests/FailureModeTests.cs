@@ -53,7 +53,7 @@ public class FailureModeTests
             Query: null,
             Title: null,
             Referrer: null,
-            UserAgent: "Test",
+            Browser: "Test",
             Component: "Test",
             Timestamp: DateTimeOffset.UtcNow
         );
@@ -108,7 +108,7 @@ public class FailureModeTests
             Query: null,
             Title: null,
             Referrer: null,
-            UserAgent: "Test",
+            Browser: "Test",
             Component: "Test",
             Timestamp: DateTimeOffset.UtcNow
         );

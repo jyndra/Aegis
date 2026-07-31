@@ -11,9 +11,14 @@
     "webNavigation"
   ],
   "host_permissions": [
+    "http://127.0.0.1:9443/*",
     "https://127.0.0.1:9443/*",
     "<all_urls>"
   ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Aegis Protection Agent"
+  },
   "background": {
     "service_worker": "dist/background.js",
     "type": "module"

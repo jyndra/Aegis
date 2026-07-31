@@ -25,7 +25,7 @@ public class AiTextClassifierTests
         var result = await _classifier.ClassifyTextAsync(benignText);
 
         result.IsExplicit.Should().BeFalse();
-        result.ConfidenceScore.Should().Be< 0.40;
+        result.ConfidenceScore.Should().BeLessThan(0.40);
         result.Category.Should().Be("Safe");
     }
 
@@ -44,7 +44,7 @@ public class AiTextClassifierTests
     [Fact]
     public async Task ClassifyTextAsync_WithMildKeywords_ReturnsSuggestiveOrSafe()
     {
-        string mildText = "Join our online dating app for live chat sessions.";
+        string mildText = "Join our dating app to find local matches.";
         var result = await _classifier.ClassifyTextAsync(mildText);
 
         result.IsExplicit.Should().BeFalse();

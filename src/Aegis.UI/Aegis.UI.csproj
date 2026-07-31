@@ -4,6 +4,7 @@
     <RootNamespace>Aegis.UI</RootNamespace>
     <AssemblyName>Aegis.UI</AssemblyName>
     <UseWinUI>true</UseWinUI>
+    <WindowsPackageType>None</WindowsPackageType>
     <EnableMsixTooling>true</EnableMsixTooling>
   </PropertyGroup>
 

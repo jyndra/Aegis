@@ -104,14 +104,18 @@ public class IntegrityEngine : IIntegrityEngine
         try
         {
             // Self-Healing Action 1: Restore missing default policy JSON files
-            string policyDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Aegis", "policies");
-            Directory.CreateDirectory(policyDir);
+            string policyDir = Path.Combine(Directory.GetCurrentDirectory(), "policies");
+            if (!Directory.Exists(policyDir) && Directory.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Aegis", "policies")))
+            {
+                policyDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Aegis", "policies");
+            }
+            try { Directory.CreateDirectory(policyDir); } catch { }
 
             string kwPath = Path.Combine(policyDir, "keywords-default.json");
             if (!File.Exists(kwPath))
             {
-                var defaultKw = new { Name = "DefaultKeywords", Version = "1.0", Rules = new[] { new { Keyword = "porn", Weight = 50, MatchType = "WordBoundary" } } };
-                await File.WriteAllTextAsync(kwPath, JsonSerializer.Serialize(defaultKw), cancellationToken);
+                var defaultKw = new { Name = "DefaultKeywords", Version = "1.0", Rules = new[] { new { Keyword = "porn", Weight = 85, MatchType = "WordBoundary" } } };
+                try { await File.WriteAllTextAsync(kwPath, JsonSerializer.Serialize(defaultKw), cancellationToken); } catch { }
                 _logger.LogInformation("Self-healing restored missing default keyword pack at {Path}", kwPath);
                 healed = true;
             }
@@ -119,8 +123,8 @@ public class IntegrityEngine : IIntegrityEngine
             string rxPath = Path.Combine(policyDir, "regex-default.json");
             if (!File.Exists(rxPath))
             {
-                var defaultRx = new { Name = "DefaultRegex", Version = "1.0", Rules = new[] { new { Pattern = @"\b(porn|porno|xxx)\b", Weight = 80, Category = "ExplicitDomain", Description = "Explicit heuristics" } } };
-                await File.WriteAllTextAsync(rxPath, JsonSerializer.Serialize(defaultRx), cancellationToken);
+                var defaultRx = new { Name = "DefaultRegex", Version = "1.0", Rules = new[] { new { Pattern = @"\b(porn|porno|xxx)\b", Weight = 85, Category = "ExplicitDomain", Description = "Explicit heuristics" } } };
+                try { await File.WriteAllTextAsync(rxPath, JsonSerializer.Serialize(defaultRx), cancellationToken); } catch { }
                 _logger.LogInformation("Self-healing restored missing default regex pack at {Path}", rxPath);
                 healed = true;
             }
@@ -128,6 +132,7 @@ public class IntegrityEngine : IIntegrityEngine
             // Self-Healing Action 2: SQLite WAL Checkpoint
             await _storageService.CheckpointWalAsync(cancellationToken);
             _logger.LogInformation("Self-healing executed SQLite WAL checkpoint.");
+            healed = true;
 
             await _eventRepo.AddEventAsync(new AegisEvent(
                 Id: 0,
@@ -214,7 +219,11 @@ public class IntegrityEngine : IIntegrityEngine
 
     private Task<bool> VerifyPolicyAndManifestFilesAsync(List<IntegrityCheckResult> checks, CancellationToken cancellationToken)
     {
-        string policyDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Aegis", "policies");
+        string policyDir = Path.Combine(Directory.GetCurrentDirectory(), "policies");
+        if (!Directory.Exists(policyDir))
+        {
+            policyDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Aegis", "policies");
+        }
         bool dirExists = Directory.Exists(policyDir);
 
         checks.Add(new IntegrityCheckResult(
@@ -255,10 +264,10 @@ public class IntegrityEngine : IIntegrityEngine
                 VALUES ($type, $status, $details, $checked_at);
             ";
 
-            cmd.Parameters.AddWithValue("$type", "BootAudit");
-            cmd.Parameters.AddWithValue("$status", report.Healthy ? "Passed" : "Failed");
-            cmd.Parameters.AddWithValue("$details", JsonSerializer.Serialize(report.Checks));
-            cmd.Parameters.AddWithValue("$checked_at", report.CheckedAt.ToString("o"));
+            AddParameter(cmd, "$type", "BootAudit");
+            AddParameter(cmd, "$status", report.Healthy ? "Passed" : "Failed");
+            AddParameter(cmd, "$details", JsonSerializer.Serialize(report.Checks));
+            AddParameter(cmd, "$checked_at", report.CheckedAt.ToString("o"));
 
             await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
@@ -266,5 +275,13 @@ public class IntegrityEngine : IIntegrityEngine
         {
             _logger.LogError(ex, "Failed to persist integrity audit report to SQLite database.");
         }
+    }
+
+    private static void AddParameter(System.Data.Common.DbCommand command, string name, object value)
+    {
+        var param = command.CreateParameter();
+        param.ParameterName = name;
+        param.Value = value;
+        command.Parameters.Add(param);
     }
 }

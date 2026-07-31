@@ -3,7 +3,7 @@ import * as esbuild from 'esbuild';
 const isWatch = process.argv.includes('--watch');
 
 const context = await esbuild.context({
-  entryPoints: ['src/background.ts', 'src/content.ts', 'src/block.ts'],
+  entryPoints: ['src/background.ts', 'src/content.ts', 'src/block.ts', 'src/popup.ts'],
   bundle: true,
   outdir: 'dist',
   target: 'es2022',

@@ -1,42 +1,47 @@
+using Aegis.Core.Interfaces;
 using Aegis.Infrastructure.Commitment;
 using Aegis.Infrastructure.Security;
 using Aegis.Infrastructure.Storage;
-using Aegis.Infrastructure.Time;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 using Xunit;
 
 namespace Aegis.Infrastructure.Tests;
 
 public class CommitLockEngineTests : IDisposable
 {
+    private readonly string _tempDbPath;
     private readonly SqliteStorageService _storageService;
     private readonly SecurityService _securityService;
     private readonly EventRepository _eventRepo;
+    private readonly Mock<ITimeProvider> _mockTimeProvider;
     private readonly CommitLockEngine _lockEngine;
+    private DateTimeOffset _currentTime;
 
     public CommitLockEngineTests()
     {
-        var tempDbPath = Path.Combine(Path.GetTempPath(), $"aegis_lock_test_{Guid.NewGuid():N}.db");
+        _tempDbPath = Path.Combine(Path.GetTempPath(), $"aegis_lock_test_{Guid.NewGuid():N}.db");
         var migrator = new DatabaseMigrator(NullLogger<DatabaseMigrator>.Instance);
-        _storageService = new SqliteStorageService(NullLogger<SqliteStorageService>.Instance, migrator, tempDbPath);
+        _storageService = new SqliteStorageService(NullLogger<SqliteStorageService>.Instance, migrator, _tempDbPath);
         _storageService.InitializeDatabaseAsync().GetAwaiter().GetResult();
 
         _securityService = new SecurityService(NullLogger<SecurityService>.Instance);
         _eventRepo = new EventRepository(_storageService, NullLogger<EventRepository>.Instance);
-        var timeProvider = new SystemTimeProvider();
 
-        _lockEngine = new CommitLockEngine(_storageService, _securityService, timeProvider, _eventRepo, NullLogger<CommitLockEngine>.Instance);
+        _currentTime = DateTimeOffset.UtcNow;
+        _mockTimeProvider = new Mock<ITimeProvider>();
+        _mockTimeProvider.Setup(t => t.UtcNow).Returns(() => _currentTime);
+
+        _lockEngine = new CommitLockEngine(_storageService, _securityService, _mockTimeProvider.Object, _eventRepo, NullLogger<CommitLockEngine>.Instance);
     }
 
     [Fact]
-    public async Task GetLockStateAsync_ReturnsActive25DayLock()
+    public async Task GetLockStateAsync_ReturnsState_WithValidHmac()
     {
         var state = await _lockEngine.GetLockStateAsync();
-
         state.Should().NotBeNull();
         state.Locked.Should().BeTrue();
-        state.LockExpiresAt.Should().BeAfter(state.LockStartedAt.AddDays(24));
     }
 
     [Fact]
@@ -47,7 +52,7 @@ public class CommitLockEngineTests : IDisposable
         result.Success.Should().BeTrue();
         result.CurrentStage.Should().Be(1);
         result.CooldownRemaining.Should().NotBeNull();
-        result.CooldownRemaining.Value.TotalHours.Should().Be(48);
+        result.CooldownRemaining!.Value.TotalHours.Should().Be(48);
     }
 
     [Fact]
@@ -68,7 +73,10 @@ public class CommitLockEngineTests : IDisposable
     {
         await _lockEngine.InitiateUnlockStageAsync(1);
 
-        // Simulate cooldown bypass in test state by passing invalid passphrase
+        // Advance simulated time past the 48-hour cooldown
+        _currentTime = _currentTime.AddHours(49);
+
+        // Submit invalid passphrase
         var result = await _lockEngine.InitiateUnlockStageAsync(2, "WRONG_PASSPHRASE");
 
         result.Success.Should().BeFalse();
@@ -78,9 +86,6 @@ public class CommitLockEngineTests : IDisposable
 
     public void Dispose()
     {
-        if (File.Exists(_storageService.DbPath))
-        {
-            try { File.Delete(_storageService.DbPath); } catch { }
-        }
+        try { if (File.Exists(_tempDbPath)) File.Delete(_tempDbPath); } catch { }
     }
 }

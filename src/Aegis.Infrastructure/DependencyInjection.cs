@@ -67,6 +67,9 @@ public static class DependencyInjection
         services.AddSingleton<IInstallerService, InstallerService>();
         services.AddSingleton<IUninstallerService, UninstallerService>();
 
+        // 12. Custom Policy Provisions (Websites, Keywords, Regex & Ratchet Enforcement)
+        services.AddSingleton<ICustomPolicyService, CustomPolicyService>();
+
         return services;
     }
 }

@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Security.Cryptography;
 using System.Text;
 using Aegis.Core.Interfaces;
@@ -30,6 +31,19 @@ public class BlocklistRepository : IBlocklistRepository
             return string.Empty;
 
         string norm = domain.Trim().ToLowerInvariant();
+        
+        // Strip URI schemes if present
+        if (norm.StartsWith("https://")) norm = norm[8..];
+        else if (norm.StartsWith("http://")) norm = norm[7..];
+
+        // Strip path, query string, or trailing slash
+        int slashIdx = norm.IndexOf('/');
+        if (slashIdx >= 0) norm = norm[..slashIdx];
+
+        // Strip port number if present
+        int colonIdx = norm.IndexOf(':');
+        if (colonIdx >= 0) norm = norm[..colonIdx];
+
         if (norm.StartsWith("www."))
         {
             norm = norm[4..];
@@ -52,10 +66,10 @@ public class BlocklistRepository : IBlocklistRepository
             INSERT OR IGNORE INTO domain_blocklist (domain_hash, domain, source, imported_at)
             VALUES ($hash, $domain, $source, $imported_at);
         ";
-        cmd.Parameters.AddWithValue("$hash", hash);
-        cmd.Parameters.AddWithValue("$domain", norm);
-        cmd.Parameters.AddWithValue("$source", source);
-        cmd.Parameters.AddWithValue("$imported_at", DateTimeOffset.UtcNow.ToString("o"));
+        AddParameter(cmd, "$hash", hash);
+        AddParameter(cmd, "$domain", norm);
+        AddParameter(cmd, "$source", source);
+        AddParameter(cmd, "$imported_at", DateTimeOffset.UtcNow.ToString("o"));
 
         await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
@@ -74,10 +88,10 @@ public class BlocklistRepository : IBlocklistRepository
             VALUES ($hash, $domain, $source, $imported_at);
         ";
 
-        var hashParam = cmd.Parameters.Add("$hash", Microsoft.Data.Sqlite.SqliteType.Text);
-        var domainParam = cmd.Parameters.Add("$domain", Microsoft.Data.Sqlite.SqliteType.Text);
-        cmd.Parameters.AddWithValue("$source", source);
-        cmd.Parameters.AddWithValue("$imported_at", nowStr);
+        AddParameter(cmd, "$hash", "");
+        AddParameter(cmd, "$domain", "");
+        AddParameter(cmd, "$source", source);
+        AddParameter(cmd, "$imported_at", nowStr);
 
         int count = 0;
         foreach (var domain in domains)
@@ -85,8 +99,8 @@ public class BlocklistRepository : IBlocklistRepository
             string norm = NormalizeDomain(domain);
             if (string.IsNullOrEmpty(norm)) continue;
 
-            hashParam.Value = ComputeDomainHash(norm);
-            domainParam.Value = norm;
+            cmd.Parameters["$hash"].Value = ComputeDomainHash(norm);
+            cmd.Parameters["$domain"].Value = norm;
             await cmd.ExecuteNonQueryAsync(cancellationToken);
             count++;
         }
@@ -102,7 +116,7 @@ public class BlocklistRepository : IBlocklistRepository
 
         var cmd = connection.CreateCommand();
         cmd.CommandText = "SELECT 1 FROM domain_blocklist WHERE domain_hash = $hash LIMIT 1;";
-        cmd.Parameters.AddWithValue("$hash", domainHash);
+        AddParameter(cmd, "$hash", domainHash);
 
         var result = await cmd.ExecuteScalarAsync(cancellationToken);
         return result != null;
@@ -165,5 +179,13 @@ public class BlocklistRepository : IBlocklistRepository
         }
 
         return rules;
+    }
+
+    private static void AddParameter(DbCommand command, string name, object value)
+    {
+        var param = command.CreateParameter();
+        param.ParameterName = name;
+        param.Value = value;
+        command.Parameters.Add(param);
     }
 }

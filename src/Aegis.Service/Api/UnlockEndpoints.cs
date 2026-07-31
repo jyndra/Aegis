@@ -1,4 +1,7 @@
 using Aegis.Core.Interfaces;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 
 namespace Aegis.Service.Api;
 
@@ -25,6 +28,25 @@ public static class UnlockEndpoints
         {
             var progress = await lockEngine.InitiateUnlockStageAsync(request.Stage, request.ConfirmationChallenge, cancellationToken);
             return Results.Ok(progress);
+        });
+
+        // API.md & Integration Test Aliases
+        routes.MapPost("/unlock/request", async (ICommitLockEngine lockEngine, CancellationToken cancellationToken) =>
+        {
+            var progress = await lockEngine.InitiateUnlockStageAsync(1, null, cancellationToken);
+            return Results.Ok(progress);
+        });
+
+        routes.MapPost("/unlock/advance", async (ICommitLockEngine lockEngine, CancellationToken cancellationToken) =>
+        {
+            var progress = await lockEngine.InitiateUnlockStageAsync(2, null, cancellationToken);
+            return Results.Ok(progress);
+        });
+
+        routes.MapPost("/unlock/cancel", async (ICommitLockEngine lockEngine, CancellationToken cancellationToken) =>
+        {
+            await lockEngine.ResetFailedAttemptsAsync(cancellationToken);
+            return Results.Ok(new { success = true, message = "Unlock request cancelled." });
         });
     }
 }
